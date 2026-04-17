@@ -1,0 +1,37 @@
+# Godot 4+ specific
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+
+# Imported translations (automatic)
+*.translation
+
+# Mono-specific
+.mono/
+data_*/
+mono_crash.*.json
+
+# System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+builds/
+*.app/
+*.exe
+*.dmg
+*.pck
+*.zip
+
+# Local env
+.env
+.env.local
