@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui_root.gd" id="1_script"]
+
+[node name="UIRoot" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="Prompt" type="Label" parent="."]
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 100.0
+offset_bottom = 24.0
+text = "Press E"
+visible = false
+
+[node name="PanelHost" type="Control" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
