@@ -3,7 +3,7 @@
 Single source of truth for where v0.1 execution stands. Updated at the end of every task so any agent resuming work (after context clear, session resume, whatever) can pick up without reading the full transcript.
 
 **Current head of `main`:** see `git log -1 --oneline` — always the latest squash-merge commit.
-**Last updated:** 2026-04-18 after Task 12 completion.
+**Last updated:** 2026-04-18 after Task 13 completion.
 
 ---
 
@@ -23,8 +23,8 @@ Single source of truth for where v0.1 execution stands. Updated at the end of ev
 | 10. PlayerController | ✅ Complete | [#21](https://github.com/norumander/llmvile/pull/21) merged (SHA `f5b8d2a`) | Issue [#20](https://github.com/norumander/llmvile/issues/20). CI GREEN first attempt (18s). Spec+quality combined review ✅. Inline comment + InputEventKey serialization gotchas (previously documented) were both pre-emptively sidestepped. No new nits beyond the standing `uid=` tech-debt. |
 | 11. InteractionSystem | ✅ Complete | [#23](https://github.com/norumander/llmvile/pull/23) merged (SHA `30c1ad1`) | Issue [#22](https://github.com/norumander/llmvile/issues/22). First task to modify previously-shipped files (Task 10's Player scene + script). CI GREEN first attempt. Spec+quality combined ✅. Used plan's "clean approach": PlayerController emits `panel_requested(panel)` signal — no UIRoot coupling. |
 | 12. UIRoot | ✅ Complete | [#25](https://github.com/norumander/llmvile/pull/25) merged (SHA `066eedb`) | Issue [#24](https://github.com/norumander/llmvile/issues/24). Used plan's Option B (`show_panel_for(panel, npc)`, cascade: `PlayerController.panel_requested` is now `(panel, npc)`). CI GREEN first attempt. Spec+quality combined ✅, zero findings. UIRoot is NOT an autoload — scene node lives in `world.tscn`. |
-| 13. Status indicators | ⏭ Next | — | |
-| 14. World scene | ⏸ Blocked by 10–13 | — | |
+| 13. Status indicators | ✅ Complete | [#27](https://github.com/norumander/llmvile/pull/27) merged (SHA `67def66`) | Issue [#26](https://github.com/norumander/llmvile/issues/26). Append-only to Task 12's `ui_root.gd` + one node in `.tscn`. CI GREEN first attempt (17s). Combined review ✅. Nits deferred: labels leak when NPCs freed (no despawn in v0.1 so fine); no `register_npc` duplicate-call guard (would double-fire signals); dead `label.set_meta("npc", npc)` kept for plan fidelity. |
+| 14. World scene | ⏭ Next | — | |
 | 15. Art generation | ⏸ Blocked by 4 | — | Can run parallel to 5–13 once 4 is done. |
 | 16. Office tilemap | ⏸ Blocked by 14,15 | — | |
 | 17. NPC configs + placement | ⏸ Blocked by 9,16 | — | |
@@ -99,18 +99,22 @@ The **Resume prompt** at the bottom is a stable one-liner — don't edit it per-
 
 - **How should controller PROGRESS.md updates reach `main`?** — **Decided 2026-04-18 (Task 4): option 1** — direct-push as admin, trust the GitHub bypass log as audit trail. Each bypass produces a "Bypassed rule violations for refs/heads/main" entry in the repo's bypass log, which gives us the paper trail without the overhead of a PR-per-progress-update. Revisit if audit volume becomes noisy.
 
-## Next up: Task 13 — Status indicator rendering in `UIRoot`
+## Next up: Task 14 — `World` scene
 
-- **Character:** TDD. Extend Task 12's `ui_root.gd` + `ui_root.tscn`, add one test file. Mechanical.
-- **Files:** modify `scripts/ui_root.gd` + `scenes/ui/ui_root.tscn`; new `test/unit/test_status_indicators.gd`.
-- **CI:** GREEN. No `--admin`.
+- **Character:** Scene assembly — no unit tests. Root `Node2D` with Player instance, empty TileMap (Task 16 fills it), Camera2D, UIRoot instance, and signal wiring script.
+- **Files:** new `scenes/world.tscn`, new `scripts/world.gd`.
+- **CI:** GREEN — CI's `--import` validates the scene loads. No GUT tests added here.
+- **API reconciliation:** `PlayerController.panel_requested` is now `(panel, npc)` (Option B from Task 12). The plan's Task 14 handler `_on_panel_requested(panel)` pre-dates Option B — update the handler to `(panel, npc)` and call `_ui.show_panel_for(panel, npc)` directly (no need to re-fetch `current_target`).
 - **Watch-outs:**
-  - `scenes/ui/ui_root.tscn` gets a new `IndicatorLayer` child of type `Node2D`. Yes, `Node2D` inside `CanvasLayer` is intentional (CanvasLayer draws its Node2D children in canvas-space — works fine). `load_steps` stays 2 (no new ext_resource).
-  - Append-only changes to `ui_root.gd`. Keep all Task 12 code intact.
-  - `_on_npc_status_changed(new_status, npc)` handler binds `npc` via `.connect(_on_npc_status_changed.bind(npc))`. GDScript bind-args go AFTER signal args, so the handler signature is `(new_status, npc)` — matches the plan. Don't flip it.
-  - `_indicators: Dictionary` holds `NpcEntity -> Label`. Stale NPCs linger if removed without unregister; `_process` skips via `is_instance_valid`. No explicit unregister needed for v0.1.
-  - Haiku should handle it — mechanical.
-- **Plan reference:** Task 13 at `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` (line 1550).
+  - `.tscn` hand-written. Needed: root `World` Node2D with world.gd script, Player instance (from `scenes/player.tscn`), `TileMap` (empty), `Camera2D`, UIRoot instance (from `scenes/ui/ui_root.tscn`).
+  - **Camera2D should be a child of Player** (plan says so) but Player is an instanced scene. Use Godot's "editable-children" pattern: `[node name="Camera2D" type="Camera2D" parent="Player"]` — Godot accepts adding nodes to instanced subtrees this way.
+  - `run/main_scene="res://scenes/world.tscn"` in `project.godot` was set way back in Task 4 — so once `world.tscn` exists, F5 will actually run it. CI's `--import` just validates the scene loads.
+  - `load_steps` in `world.tscn`: 3 ext_resources (world.gd, player.tscn, ui_root.tscn) = 4 (inc. root).
+  - **No NPCs yet** — they land in Task 17 as separate `.tscn` instances added to `world.tscn`. The `for npc in get_tree().get_nodes_in_group("npc")` loop in `world.gd._ready` runs on an empty group right now. Fine.
+  - `class_name` not needed on `world.gd`; it's only instantiated once via the scene.
+  - The `TileMap` node is technically deprecated in Godot 4.3 (replaced by `TileMapLayer`) but still works. Plan says `TileMap` — use `TileMap`. Task 16 can switch if needed.
+  - Sonnet recommended.
+- **Plan reference:** Task 14 at `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` (line 1653).
 
 ## Resume prompt (paste this after `/clear`)
 
