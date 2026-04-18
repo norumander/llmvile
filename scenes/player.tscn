@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://art/_missing.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://art/player.png" id="2_sprite"]
 [ext_resource type="Script" path="res://scripts/interaction_system.gd" id="3_system"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
