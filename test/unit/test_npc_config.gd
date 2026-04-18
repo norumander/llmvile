@@ -6,7 +6,7 @@ func test_valid_tres_loads_all_fields():
 	var cfg: NpcConfig = load("res://test/fixtures/valid_npc.tres")
 	assert_not_null(cfg)
 	assert_eq(cfg.display_name, "Test NPC")
-	assert_not_null(cfg.sprite)
+	assert_not_null(cfg.sprite_frames)
 	assert_eq(cfg.desk_position, Vector2i(2, 3))
 	assert_not_null(cfg.panel_scene)
 	assert_eq(cfg.kind, &"stub")

@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="NpcConfig" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/npc_config.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://art/_missing.png" id="2_sprite"]
+[ext_resource type="SpriteFrames" path="res://test/fixtures/test_sprite_frames.tres" id="2_frames"]
 
 [resource]
 script = ExtResource("1_script")
 display_name = "Test NPC"
-sprite = ExtResource("2_sprite")
+sprite_frames = ExtResource("2_frames")
 desk_position = Vector2i(0, 0)
 kind = &"stub"

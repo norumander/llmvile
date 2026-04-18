@@ -23,7 +23,9 @@ func _ready() -> void:
 		push_warning("NpcConfig invalid for NPC at %s; skipping" % get_path())
 		queue_free()
 		return
-	$Sprite2D.texture = config.sprite
+	var sprite := $AnimatedSprite2D as AnimatedSprite2D
+	sprite.sprite_frames = config.sprite_frames
+	sprite.play("idle_south")
 
 func interact() -> InteractionPanel:
 	if config == null or config.panel_scene == null:
