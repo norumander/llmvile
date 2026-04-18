@@ -2,6 +2,7 @@
 .godot/
 .import/
 export.cfg
+*.uid
 
 # Imported translations (automatic)
 *.translation

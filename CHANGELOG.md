@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `.gitignore` now excludes `*.uid` so Godot 4.3's auto-generated UID files don't drift between local imports and CI.
+- `docs/dev-setup.md` gained a "Local iterate loop" section documenting direct-launch playtest against a local Godot 4.3 install, including the one-time double-import step.
+
 ## [0.1.0] - 2026-04-18
 
 ### Added
