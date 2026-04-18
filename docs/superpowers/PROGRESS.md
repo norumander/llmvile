@@ -3,7 +3,7 @@
 Single source of truth for where v0.1 execution stands. Updated at the end of every task so any agent resuming work (after context clear, session resume, whatever) can pick up without reading the full transcript.
 
 **Current head of `main`:** see `git log -1 --oneline` — always the latest squash-merge commit.
-**Last updated:** 2026-04-18 after Task 13 completion.
+**Last updated:** 2026-04-18 after Task 14 completion + CI parse-error hardening ([#31](https://github.com/norumander/llmvile/pull/31)).
 
 ---
 
@@ -24,8 +24,9 @@ Single source of truth for where v0.1 execution stands. Updated at the end of ev
 | 11. InteractionSystem | ✅ Complete | [#23](https://github.com/norumander/llmvile/pull/23) merged (SHA `30c1ad1`) | Issue [#22](https://github.com/norumander/llmvile/issues/22). First task to modify previously-shipped files (Task 10's Player scene + script). CI GREEN first attempt. Spec+quality combined ✅. Used plan's "clean approach": PlayerController emits `panel_requested(panel)` signal — no UIRoot coupling. |
 | 12. UIRoot | ✅ Complete | [#25](https://github.com/norumander/llmvile/pull/25) merged (SHA `066eedb`) | Issue [#24](https://github.com/norumander/llmvile/issues/24). Used plan's Option B (`show_panel_for(panel, npc)`, cascade: `PlayerController.panel_requested` is now `(panel, npc)`). CI GREEN first attempt. Spec+quality combined ✅, zero findings. UIRoot is NOT an autoload — scene node lives in `world.tscn`. |
 | 13. Status indicators | ✅ Complete | [#27](https://github.com/norumander/llmvile/pull/27) merged (SHA `67def66`) | Issue [#26](https://github.com/norumander/llmvile/issues/26). Append-only to Task 12's `ui_root.gd` + one node in `.tscn`. CI GREEN first attempt (17s). Combined review ✅. Nits deferred: labels leak when NPCs freed (no despawn in v0.1 so fine); no `register_npc` duplicate-call guard (would double-fire signals); dead `label.set_meta("npc", npc)` kept for plan fidelity. |
-| 14. World scene | ⏭ Next | — | |
-| 15. Art generation | ⏸ Blocked by 4 | — | Can run parallel to 5–13 once 4 is done. |
+| 14. World scene | ✅ Complete | [#29](https://github.com/norumander/llmvile/pull/29) merged (SHA `c55f673`) | Issue [#28](https://github.com/norumander/llmvile/issues/28). Hand-wrote `world.tscn` with editable-children Camera2D inside Player instance. No tests — scene import is the validation. Uncovered a **silent CI regression** (issue [#30](https://github.com/norumander/llmvile/issues/30)) during the CI-log inspection: `player_controller.gd` and `test_npc_entity.gd` had been parse-erroring for ~3 PRs but CI trusted GUT's exit code and missed it. Pre-existing, not caused by Task 14. |
+| Fix parse errors + harden CI | ✅ Complete | [#31](https://github.com/norumander/llmvile/pull/31) merged (SHA `c5439b4`) | Issue [#30](https://github.com/norumander/llmvile/issues/30). Typed the two `var panel := ...` lines explicitly. Hardened `.github/workflows/ci.yml` to `set -o pipefail` + `grep -E "Parse error\|Failed to load script"` after import and GUT runs. Now GUT totals show `Passing 23, Risky/Pending 0`. Pipefail omission was caught in review — followed up same PR. |
+| 15. Art generation | ⏸ **BLOCKED — needs PixelLab MCP or user decision** | — | PixelLab MCP not available in current tool set. See Open questions below. |
 | 16. Office tilemap | ⏸ Blocked by 14,15 | — | |
 | 17. NPC configs + placement | ⏸ Blocked by 9,16 | — | |
 | 18. Export presets | ⏸ Blocked by 17 | — | |
@@ -98,23 +99,21 @@ The **Resume prompt** at the bottom is a stable one-liner — don't edit it per-
 ## Open questions
 
 - **How should controller PROGRESS.md updates reach `main`?** — **Decided 2026-04-18 (Task 4): option 1** — direct-push as admin, trust the GitHub bypass log as audit trail. Each bypass produces a "Bypassed rule violations for refs/heads/main" entry in the repo's bypass log, which gives us the paper trail without the overhead of a PR-per-progress-update. Revisit if audit volume becomes noisy.
+- **How to do Task 15 art without PixelLab MCP?** — **Open.** The current Claude session has no PixelLab MCP (tool set confirmed 2026-04-18). Three viable paths, pending user decision:
+  1. User generates art externally via PixelLab web UI / alternative, drops PNGs in `art/` and `art/tiles/`; controller resumes from Task 16.
+  2. Controller stubs Task 15 with procedurally-generated flat-color placeholder PNGs (e.g., Python one-liner or Godot script producing 32×32 solid-color tiles and a crude shape for player/NPCs). Ships v0.1 with "placeholder art" caveat. File a follow-up issue for real art pass before v0.2.
+  3. Install/connect PixelLab MCP to this session, then dispatch Task 15 normally.
+  Options 1 and 2 unblock the remaining critical path (Tasks 16 → 17 → 18 → 19 → 20 → 21). Option 3 preserves plan fidelity but needs setup.
 
-## Next up: Task 14 — `World` scene
+## Next up: Task 15 — art generation (BLOCKED, see Open questions)
 
-- **Character:** Scene assembly — no unit tests. Root `Node2D` with Player instance, empty TileMap (Task 16 fills it), Camera2D, UIRoot instance, and signal wiring script.
-- **Files:** new `scenes/world.tscn`, new `scripts/world.gd`.
-- **CI:** GREEN — CI's `--import` validates the scene loads. No GUT tests added here.
-- **API reconciliation:** `PlayerController.panel_requested` is now `(panel, npc)` (Option B from Task 12). The plan's Task 14 handler `_on_panel_requested(panel)` pre-dates Option B — update the handler to `(panel, npc)` and call `_ui.show_panel_for(panel, npc)` directly (no need to re-fetch `current_target`).
-- **Watch-outs:**
-  - `.tscn` hand-written. Needed: root `World` Node2D with world.gd script, Player instance (from `scenes/player.tscn`), `TileMap` (empty), `Camera2D`, UIRoot instance (from `scenes/ui/ui_root.tscn`).
-  - **Camera2D should be a child of Player** (plan says so) but Player is an instanced scene. Use Godot's "editable-children" pattern: `[node name="Camera2D" type="Camera2D" parent="Player"]` — Godot accepts adding nodes to instanced subtrees this way.
-  - `run/main_scene="res://scenes/world.tscn"` in `project.godot` was set way back in Task 4 — so once `world.tscn` exists, F5 will actually run it. CI's `--import` just validates the scene loads.
-  - `load_steps` in `world.tscn`: 3 ext_resources (world.gd, player.tscn, ui_root.tscn) = 4 (inc. root).
-  - **No NPCs yet** — they land in Task 17 as separate `.tscn` instances added to `world.tscn`. The `for npc in get_tree().get_nodes_in_group("npc")` loop in `world.gd._ready` runs on an empty group right now. Fine.
-  - `class_name` not needed on `world.gd`; it's only instantiated once via the scene.
-  - The `TileMap` node is technically deprecated in Godot 4.3 (replaced by `TileMapLayer`) but still works. Plan says `TileMap` — use `TileMap`. Task 16 can switch if needed.
-  - Sonnet recommended.
-- **Plan reference:** Task 14 at `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` (line 1653).
+Plan wants PixelLab MCP generation of player + 4 NPC sprites + 3 tile textures. This session has no PixelLab MCP. Controller has paused for user direction (Open questions, option 1/2/3). All engine code through Task 14 is shipped and GREEN; critical path resumes at Task 16 once art lands.
+
+**If user picks option 2 (placeholder-art stub), Task 15 becomes:**
+- Generate 32×32 flat-color PNGs for `art/player.png`, `art/npc_01.png`..`npc_04.png`, `art/tiles/floor_wood.png`, `art/tiles/wall.png`, `art/tiles/desk.png` (e.g. via a one-shot GDScript that writes PNGs via `Image.save_png`, or Python with Pillow/stdlib `PIL`-free PPM-to-PNG, or `ffmpeg` from macOS `color=` source).
+- File follow-up issue `art: real pixel art pass before v0.2`.
+- CI GREEN after `--import` processes the new PNGs.
+- Unblocks Task 16 (tilemap authoring).
 
 ## Resume prompt (paste this after `/clear`)
 
