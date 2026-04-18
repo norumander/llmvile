@@ -3,7 +3,7 @@
 Single source of truth for where v0.1 execution stands. Updated at the end of every task so any agent resuming work (after context clear, session resume, whatever) can pick up without reading the full transcript.
 
 **Current head of `main`:** see `git log -1 --oneline` — always the latest squash-merge commit.
-**Last updated:** 2026-04-18 after Task 11 completion.
+**Last updated:** 2026-04-18 after Task 12 completion.
 
 ---
 
@@ -22,8 +22,8 @@ Single source of truth for where v0.1 execution stands. Updated at the end of ev
 | 9. NpcEntity | ✅ Complete | [#19](https://github.com/norumander/llmvile/pull/19) merged (SHA `6ea37d0`) | Issue [#18](https://github.com/norumander/llmvile/issues/18). CI GREEN first attempt. Spec ✅ + quality ✅. Two non-blocking quality flags deferred: `$Sprite2D.texture` hard-codes child-node name (fragile if Task 17 renames) — could switch to `@onready var _sprite: Sprite2D = $Sprite2D`; test `test_interact_instantiates_panel_and_emits_signal` leaks the instantiated panel (not `autofree`d) — cheap fix. Also the obvious structural concern: no guard against double-interact — Task 11 (`InteractionSystem`) MUST own that or we push it downstream. |
 | 10. PlayerController | ✅ Complete | [#21](https://github.com/norumander/llmvile/pull/21) merged (SHA `f5b8d2a`) | Issue [#20](https://github.com/norumander/llmvile/issues/20). CI GREEN first attempt (18s). Spec+quality combined review ✅. Inline comment + InputEventKey serialization gotchas (previously documented) were both pre-emptively sidestepped. No new nits beyond the standing `uid=` tech-debt. |
 | 11. InteractionSystem | ✅ Complete | [#23](https://github.com/norumander/llmvile/pull/23) merged (SHA `30c1ad1`) | Issue [#22](https://github.com/norumander/llmvile/issues/22). First task to modify previously-shipped files (Task 10's Player scene + script). CI GREEN first attempt. Spec+quality combined ✅. Used plan's "clean approach": PlayerController emits `panel_requested(panel)` signal — no UIRoot coupling. |
-| 12. UIRoot | ⏭ Next | — | |
-| 13. Status indicators | ⏸ Blocked by 12 | — | |
+| 12. UIRoot | ✅ Complete | [#25](https://github.com/norumander/llmvile/pull/25) merged (SHA `066eedb`) | Issue [#24](https://github.com/norumander/llmvile/issues/24). Used plan's Option B (`show_panel_for(panel, npc)`, cascade: `PlayerController.panel_requested` is now `(panel, npc)`). CI GREEN first attempt. Spec+quality combined ✅, zero findings. UIRoot is NOT an autoload — scene node lives in `world.tscn`. |
+| 13. Status indicators | ⏭ Next | — | |
 | 14. World scene | ⏸ Blocked by 10–13 | — | |
 | 15. Art generation | ⏸ Blocked by 4 | — | Can run parallel to 5–13 once 4 is done. |
 | 16. Office tilemap | ⏸ Blocked by 14,15 | — | |
@@ -99,24 +99,18 @@ The **Resume prompt** at the bottom is a stable one-liner — don't edit it per-
 
 - **How should controller PROGRESS.md updates reach `main`?** — **Decided 2026-04-18 (Task 4): option 1** — direct-push as admin, trust the GitHub bypass log as audit trail. Each bypass produces a "Bypassed rule violations for refs/heads/main" entry in the repo's bypass log, which gives us the paper trail without the overhead of a PR-per-progress-update. Revisit if audit volume becomes noisy.
 
-## Next up: Task 12 — `UIRoot`
+## Next up: Task 13 — Status indicator rendering in `UIRoot`
 
-- **Character:** TDD. New `CanvasLayer` scene + script + 3 tests + cascading edit to `PlayerController` (change `panel_requested` signature). Medium complexity.
-- **Files:** new `scripts/ui_root.gd` (`class_name UIRootNode`), new `scenes/ui/ui_root.tscn`, new `test/unit/test_ui_root.gd`, modified `scripts/player_controller.gd` (change signal).
-- **CI:** GREEN.
-- **API decision (Option B — the plan's "Cleaner version" at line 1524):** use `show_panel_for(panel, npc)` (NOT `show_panel(panel)` with meta-string). This means:
-  - `PlayerController.panel_requested` signal becomes `signal panel_requested(panel: InteractionPanel, npc: NpcEntity)`.
-  - PlayerController emit site becomes `panel_requested.emit(panel, $InteractionSystem.current_target)`.
-  - Tests in Task 12 must use `ui.show_panel_for(panel, null)` (StubDialoguePanel.show_for handles null).
-- **`UIRoot` is NOT an autoload** — plan line 1454. It's a plain scene node. Test instantiates directly.
+- **Character:** TDD. Extend Task 12's `ui_root.gd` + `ui_root.tscn`, add one test file. Mechanical.
+- **Files:** modify `scripts/ui_root.gd` + `scenes/ui/ui_root.tscn`; new `test/unit/test_status_indicators.gd`.
+- **CI:** GREEN. No `--admin`.
 - **Watch-outs:**
-  - Class name: plan says `class_name UIRootNode` (NOT `UIRoot`, which would collide with the eventual "world.tscn has a node named UIRoot" convention).
-  - `scenes/ui/ui_root.tscn` hand-written. Hierarchy: root `CanvasLayer` w/ script → `Label` named `Prompt` (text "Press E", visible=false) → `Control` named `PanelHost` (anchor full-rect).
-  - `show_panel_for` calls `_panel_host.add_child(panel)`, connects `panel_closed` with `CONNECT_ONE_SHOT`, calls `GameRoot.push_panel(panel)`, then `panel.show_for(npc)`.
-  - `_on_panel_closed(panel)` calls `GameRoot.pop_panel(panel)`. The InteractionPanel base's `close()` already does `queue_free()` on the panel, so don't double-free.
-  - Test 3 asserts `GameRoot.world_input_paused == true` after `show_panel_for`, then `panel.close()`, `await wait_frames(2)`, asserts `false`. Depends on `GameRoot.push_panel/pop_panel` working (Task 5).
-  - Sonnet recommended.
-- **Plan reference:** Task 12 at `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` (line 1444).
+  - `scenes/ui/ui_root.tscn` gets a new `IndicatorLayer` child of type `Node2D`. Yes, `Node2D` inside `CanvasLayer` is intentional (CanvasLayer draws its Node2D children in canvas-space — works fine). `load_steps` stays 2 (no new ext_resource).
+  - Append-only changes to `ui_root.gd`. Keep all Task 12 code intact.
+  - `_on_npc_status_changed(new_status, npc)` handler binds `npc` via `.connect(_on_npc_status_changed.bind(npc))`. GDScript bind-args go AFTER signal args, so the handler signature is `(new_status, npc)` — matches the plan. Don't flip it.
+  - `_indicators: Dictionary` holds `NpcEntity -> Label`. Stale NPCs linger if removed without unregister; `_process` skips via `is_instance_valid`. No explicit unregister needed for v0.1.
+  - Haiku should handle it — mechanical.
+- **Plan reference:** Task 13 at `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` (line 1550).
 
 ## Resume prompt (paste this after `/clear`)
 
