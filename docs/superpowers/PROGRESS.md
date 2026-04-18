@@ -3,7 +3,7 @@
 Single source of truth for where v0.1 execution stands. Updated at the end of every task so any agent resuming work (after context clear, session resume, whatever) can pick up without reading the full transcript.
 
 **Current head of `main`:** see `git log -1 --oneline` — always the latest squash-merge commit.
-**Last updated:** 2026-04-18 after Task 19 completion ([#41](https://github.com/norumander/llmvile/pull/41) + follow-up [#43](https://github.com/norumander/llmvile/pull/43)).
+**Last updated:** 2026-04-18 — checkpoint during Task 21. PR [#48](https://github.com/norumander/llmvile/pull/48) is open + CI green + unmerged. Also unmerged from last session: task-20 playtest fixes PR [#46](https://github.com/norumander/llmvile/pull/46) was merged as SHA `272da01`; Build workflow re-dispatched after that merge and succeeded on both platforms.
 
 ---
 
@@ -31,8 +31,8 @@ Single source of truth for where v0.1 execution stands. Updated at the end of ev
 | 17. NPC configs + placement | ✅ Complete | [#37](https://github.com/norumander/llmvile/pull/37) merged (SHA `75a5e81`) | Issue [#36](https://github.com/norumander/llmvile/issues/36). Hand-authored 4 `NpcConfig` .tres files (Claude/Codex/Gemini/Spare) + instanced on desks in `world.tscn` with `groups=["npc"]`. CI GREEN first attempt (15s). Combined review ✅. Standing `uid=` tech-debt continued; file follow-up before v0.2. |
 | 18. Export presets | ✅ Complete | [#39](https://github.com/norumander/llmvile/pull/39) merged (SHA `37fb37f`) | Issue [#38](https://github.com/norumander/llmvile/issues/38). Hand-authored `export_presets.cfg` (two presets: `macOS` universal, `Windows Desktop` x86_64, both unsigned, bundle id `com.norumander.llmvile`, version `0.1.0`). Reference skeleton pulled from a public Godot 4.3 project (adaliszk/absorboid-game) and trimmed. Removed `export_presets.cfg` from `.gitignore`. CI GREEN first attempt (15s) — but CI only validates import; actual export execution is Task 19's job. Combined review ✅. Local templates never installed; `godot --headless --export-release` not run locally (editor+4.6 blocker). |
 | 19. Export build CI | ✅ Complete | [#41](https://github.com/norumander/llmvile/pull/41) merged (SHA `cfd000d`); ETC2-ASTC fix [#43](https://github.com/norumander/llmvile/pull/43) (SHA `3d12a96`) | Issue [#40](https://github.com/norumander/llmvile/issues/40). Matrix workflow — macOS native on `macos-latest`, Windows cross-export on `ubuntu-latest`. First manual dispatch passed Windows but macOS failed with `Cannot export for universal or arm64 if ETC2 ASTC texture format is disabled`; filed [#42](https://github.com/norumander/llmvile/issues/42) + shipped one-line fix ([#43](https://github.com/norumander/llmvile/pull/43)) adding `textures/vram_compression/import_etc2_astc=true` to `project.godot`. Re-dispatched workflow: both jobs ✅ (`llmvile-macOS` + `llmvile-Windows` artifacts uploaded, 30-day retention). Template dir needed branching on `$RUNNER_OS` (macOS = `~/Library/Application Support/Godot/...`, Linux = `~/.local/share/godot/...`) — plan's snippet was Linux-only. |
-| 20. Playtest | ⏭ Next up | — | Blocked on human playtesting — needs Normid to download both artifacts from the Build workflow run and actually drive the player around. |
-| 21. v0.1.0 release | ⏸ Blocked by 20 | — | Also fixes issue [#3](https://github.com/norumander/llmvile/issues/3). |
+| 20. Playtest | 🟡 Partial | Fixes [#46](https://github.com/norumander/llmvile/pull/46) merged (SHA `272da01`) | Issue [#44](https://github.com/norumander/llmvile/issues/44). Normid ran a local playtest against Godot 4.3 (not the CI artifact — faster iterate loop). Four visual bugs surfaced ([#45](https://github.com/norumander/llmvile/issues/45)) and got fixed in one PR: (1) `player.tscn` pointed at `_missing.png` instead of `player.png`, (2) `Player` node ordered before `TileMap` so tiles drew on top of player, (3) tilemap used a single layer with desk tiles replacing floor, (4) NPCs sat on the desk tile itself. Fix split tilemap into `layer_0` (floor everywhere) + `layer_1` (walls+desks) and moved NPCs one tile south. Post-merge Build dispatch ✅ both jobs. Full 10-item checklist sign-off still pending — we pivoted straight into Task 21 + planned v0.2 art pass before that happened. |
+| 21. v0.1.0 release | 🟡 In flight | PR [#48](https://github.com/norumander/llmvile/pull/48) open, CI green, **unmerged** | Issue [#47](https://github.com/norumander/llmvile/issues/47). CHANGELOG moved into `[0.1.0] - 2026-04-18`, compare link fixed (closes [#3](https://github.com/norumander/llmvile/issues/3)), `project.godot` version → `0.1.0`. Needs: merge → tag `v0.1.0` → Build auto-runs on tag → `gh release create v0.1.0` with both artifacts → close v0.1 milestone → update this file. |
 
 ## Workflow (revised from original plan, effective Task 2+)
 
@@ -101,18 +101,72 @@ The **Resume prompt** at the bottom is a stable one-liner — don't edit it per-
 - **How should controller PROGRESS.md updates reach `main`?** — **Decided 2026-04-18 (Task 4): option 1** — direct-push as admin, trust the GitHub bypass log as audit trail. Each bypass produces a "Bypassed rule violations for refs/heads/main" entry in the repo's bypass log, which gives us the paper trail without the overhead of a PR-per-progress-update. Revisit if audit volume becomes noisy.
 - **PixelLab MCP workflow** — **Decided 2026-04-18 (Task 15): controller runs inline.** Subagents spawned via `Task` / `superpowers:subagent-driven-development` don't inherit MCP tools, so art-generation tasks must run in the main controller session (generate, download, crop, commit). Subagents remain the flow for code tasks. Noted for any future PixelLab work.
 
-## Next up: Task 19 — Export build in CI (macOS + Windows)
+## Next up: Finish Task 21 (v0.1.0 release) then kick off v0.2 art pass
 
-Plan spec: `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` at line 1855.
+### Immediate resume path (Task 21)
 
-Creates `.github/workflows/build.yml` — matrix (macOS + Windows) job that installs Godot 4.3 + export templates, runs `godot --headless --export-release "macOS" builds/llmvile.app` and the Windows equivalent, uploads build artifacts. Triggers on tag push (e.g. `v*`) and/or workflow_dispatch.
+PR [#48](https://github.com/norumander/llmvile/pull/48) is open and CI green. The sequence is mechanical:
 
-Watch-outs:
-- This is the first real validation that Task 18's hand-authored `export_presets.cfg` actually works. Expect to iterate — missing fields, wrong path defaults, etc.
-- Godot 4.3 templates must match the engine version exactly. Download URL: `https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz`. Templates install to `~/Library/Application Support/Godot/export_templates/4.3.stable/` (macOS runner) or `%APPDATA%\Godot\export_templates\4.3.stable\` (Windows runner).
-- macOS export produces a `.app` bundle (or `.zip` if `export/distribution_type != 0` — ours is `0`); Windows produces `.exe` + `.pck` (unless `binary_format/embed_pck=true`; ours is `false` → both files). Artifact upload needs to include both.
-- Keep it to `ubuntu-latest` + `macos-latest` + `windows-latest` runners; the macOS runner can export the universal macOS binary, Windows runner exports the .exe. Don't cross-compile.
-- Task 20 (playtest) is blocked on this producing real artifacts humans can run — so the upload needs to be `actions/upload-artifact@v4` with a reasonable name/retention.
+```bash
+cd /Users/normanettedgui/development/test/llmvile
+gh pr merge 48 -R norumander/llmvile --squash
+git pull
+git worktree remove --force ../llmvile-issue-47
+git branch -D issue/47-v0-1-0-release
+git push origin --delete issue/47-v0-1-0-release 2>/dev/null || true
+
+# Tag + push (triggers Build workflow automatically via tags: ["v*.*.*"])
+git tag -a v0.1.0 -m "v0.1 Walkable Overworld MVP"
+git push origin v0.1.0
+
+# Wait for the tagged Build run to finish, then download artifacts
+gh run list --workflow=build.yml -R norumander/llmvile --limit 1   # grab the run id triggered by the tag
+gh run watch <RUN_ID> -R norumander/llmvile --exit-status
+rm -rf /tmp/v010-artifacts && mkdir -p /tmp/v010-artifacts
+gh run download <RUN_ID> -R norumander/llmvile -D /tmp/v010-artifacts
+
+# Create the release — --generate-notes auto-fills from PRs since last tag
+gh release create v0.1.0 -R norumander/llmvile --generate-notes \
+  --title "v0.1.0 — Walkable Overworld MVP" \
+  /tmp/v010-artifacts/llmvile-macOS/* /tmp/v010-artifacts/llmvile-Windows/*
+
+# Close the v0.1 milestone (id may vary — check `gh api /repos/norumander/llmvile/milestones`)
+gh api --method PATCH /repos/norumander/llmvile/milestones/<ID> -f state=closed
+
+# Finally: flip Task 21 to ✅ in the table above with the merge SHA, note the release URL, replace this "Next up" section with "v0.2 art pass."
+```
+
+Watch-outs for the release:
+- The Build workflow re-runs on the tag push. Don't `gh release create` until that run finishes — otherwise the tag points at code whose artifacts aren't up yet. The artifacts from the `main` dispatch (run [24613487928](https://github.com/norumander/llmvile/actions/runs/24613487928)) are identical code-wise to the tag, but attaching artifacts from the tagged run is cleaner provenance.
+- If `gh release create` fails because the tag doesn't exist yet on the remote, double-check `git push origin v0.1.0` actually pushed — branch protection doesn't cover tags but there's no harm checking `git ls-remote --tags origin`.
+- Task 20 never got a formal checklist sign-off from Normid — that's a known gap. The fixes in [#46](https://github.com/norumander/llmvile/pull/46) resolved every bug Normid observed in the local run, so shipping v0.1.0 on that basis is defensible. If you want belt-and-suspenders: ask Normid to re-run the post-merge artifact through the 10-item checklist before tagging. Worth ≤10 min and blocks nothing except the tag command.
+
+### Then: v0.2 art pass (not in the v0.1 plan, user-requested pivot)
+
+**Goal:** regenerate all character + tile art in Gen 4-ish DS-style chibi, with 4-directional idle + walk animations. Placeholder PixelLab south-rotation sprites from Task 15 get replaced.
+
+**Decisions made (2026-04-18):**
+- Ship v0.1.0 as "placeholder art" first (above), then start v0.2 as a separate milestone.
+- Scope: characters (player + 4 NPCs) AND tiles (floor/wall/desk) both get regen'd — mixing chibi characters over the current wood-plank floor will look off.
+- Animations: 4-directional idle + walk for v0.2. No attack/emote animations yet.
+- Style: Gen 4-ish DS (Pokémon Diamond/Pearl/Platinum era) — chibi heads, 32×32ish sprites, clear readability at 2× scale.
+
+**Work outline (rough, not final):**
+1. Open a v0.2 milestone + umbrella issue.
+2. PixelLab `create_character` with a Gen 4 DS style prompt per character, **4 rotations** (south/north/east/west) this time.
+3. PixelLab `animate_character` for walk + idle cycles per character per direction.
+4. Wire new sprites as `AnimatedSprite2D` (not plain `Sprite2D`) in `scenes/player.tscn` + `scenes/npc.tscn`; update `PlayerController` to flip `AnimatedSprite2D.animation` based on velocity direction.
+5. PixelLab `create_topdown_tileset` with Gen 4 DS vibe for floor/wall/desk; extract, re-author `data/tilesets/office.tres`.
+6. Playtest artifact → fix → tag `v0.2.0`.
+
+**Watch-outs:**
+- Sprite dimensions will likely change. Current art is 48×48 (padded). If new art comes out 32×32 or 64×64, tilemap scale + NPC positions may need adjustment.
+- `AnimatedSprite2D` switch is a non-trivial scene+script diff. Don't start until v0.1.0 is tagged — otherwise a tag-day regression dragging v0.2 work with it gets messy.
+- PixelLab MCP is main-session-only (subagents can't inherit it). Same constraint as Task 15.
+
+### Housekeeping also pending
+- `docs/dev-setup.md` should grow a "local iterate loop" section (run `/Applications/Godot43.app/Contents/MacOS/Godot --path .` directly instead of downloading CI artifacts). Tiny doc PR, captured from the playtest session.
+- `.gitignore` should gain `*.uid` before v0.2 kicks off to prevent Godot 4.3's uid-drift on every local import.
 
 ## Resume prompt (paste this after `/clear`)
 
