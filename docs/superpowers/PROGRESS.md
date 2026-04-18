@@ -3,7 +3,7 @@
 Single source of truth for where v0.1 execution stands. Updated at the end of every task so any agent resuming work (after context clear, session resume, whatever) can pick up without reading the full transcript.
 
 **Current head of `main`:** see `git log -1 --oneline` — always the latest squash-merge commit.
-**Last updated:** 2026-04-18 after Task 6 completion.
+**Last updated:** 2026-04-18 after Task 7 completion.
 
 ---
 
@@ -17,8 +17,8 @@ Single source of truth for where v0.1 execution stands. Updated at the end of ev
 | 4. Godot init + GUT | ✅ Complete | [#9](https://github.com/norumander/llmvile/pull/9) merged (SHA `5e9ae10`) | Issue [#8](https://github.com/norumander/llmvile/issues/8). First non-infra task. CI ran GREEN on first attempt (Import + GUT passed in 19s). Both reviewers ✅ with no blocking issues. Three 🟢 nits deferred: blue-square `icon.svg` placeholder (Godot default robot icon would be no extra effort but plan didn't specify), `art/_missing.png.import` sidecar will auto-appear first time anyone opens the editor (harmless), `run/main_scene="res://scenes/world.tscn"` targets a not-yet-existent scene (plan-sanctioned; headless import just parses). |
 | 5. GameRoot autoload | ✅ Complete | [#11](https://github.com/norumander/llmvile/pull/11) merged (SHA `43af10c`) | Issue [#10](https://github.com/norumander/llmvile/issues/10). First TDD task. CI GREEN first attempt (19s). Spec ✅. Code quality ✅ with 3 deferred 🟢 nits: `pop_panel` silently no-ops on unknown panel (could add `assert`), `panel_stack` exposed publicly-mutable (could prefix `_`), no test for the signal-dedupe behavior. Plan's `class_name GameRoot` dropped per plan's own documented fallback (Godot 4.6 makes autoload-name/class-name collision a hard error now). |
 | 6. NpcStatus + NpcConfig | ✅ Complete | [#13](https://github.com/norumander/llmvile/pull/13) merged (SHA `ec7337a`) | Issue [#12](https://github.com/norumander/llmvile/issues/12). Hand-wrote `.tres` fixtures (editor unusable locally — Godot 4.6 / GUT incompat). CI GREEN first attempt (14s, 4/4 tests). Spec ✅. Code quality ✅ with a deferred follow-up: both fixtures omit `uid="uid://..."` on the `[gd_resource]` header, so first editor import will auto-generate one and dirty the working tree. Task 17 (NPC configs + placement) should set the pattern of including an explicit `uid=` when creating new `.tres` files. |
-| 7. InteractionPanel base | ⏭ Next | — | |
-| 8. StubDialoguePanel | ⏸ Blocked by 7 | — | |
+| 7. InteractionPanel base | ✅ Complete | [#15](https://github.com/norumander/llmvile/pull/15) merged (SHA `325cc31`) | Issue [#14](https://github.com/norumander/llmvile/issues/14). Trivial 13-line file. CI GREEN first attempt (12s). Combined spec+quality review (scope was too small for two). ✅ across the board. |
+| 8. StubDialoguePanel | ⏭ Next | — | |
 | 9. NpcEntity | ⏸ Blocked by 6,7 | — | |
 | 10. PlayerController | ⏸ Blocked by 5 | — | |
 | 11. InteractionSystem | ⏸ Blocked by 9,10 | — | |
@@ -97,16 +97,20 @@ The **Resume prompt** at the bottom is a stable one-liner — don't edit it per-
 
 - **How should controller PROGRESS.md updates reach `main`?** — **Decided 2026-04-18 (Task 4): option 1** — direct-push as admin, trust the GitHub bypass log as audit trail. Each bypass produces a "Bypassed rule violations for refs/heads/main" entry in the repo's bypass log, which gives us the paper trail without the overhead of a PR-per-progress-update. Revisit if audit volume becomes noisy.
 
-## Next up: Task 7 — `InteractionPanel` abstract base
+## Next up: Task 8 — `StubDialoguePanel`
 
-- **Character:** Trivial. Single file, no tests (plan explicitly says no tests — `StubDialoguePanel` in Task 8 will exercise the contract).
-- **Files:** `scripts/interaction_panel.gd` only.
-- **CI:** must stay GREEN. No `--admin`. The file is a pure `Control` subclass with one signal, `show_for()` that `push_error`s, and `close()` that emits + `queue_free()`. If CI's `--import` fails on this, something's very wrong.
+- **Character:** TDD. Script + hand-written `.tscn` + GUT tests + `[input]` additions in `project.godot`. Medium-complex.
+- **Files:** `scripts/stub_dialogue_panel.gd`, `scenes/panels/stub_dialogue.tscn`, `test/unit/test_stub_dialogue_panel.gd`, `project.godot` (add `interact` action).
+- **CI:** must stay GREEN. No `--admin`.
 - **Watch-outs:**
-  - `class_name InteractionPanel` is fine (not an autoload).
-  - Keep the plan's `push_error` language in `show_for()` — it's the abstract-class contract.
-  - Use `haiku` — genuinely mechanical, 7 lines of code.
-- **Plan reference:** Task 7 at `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` (line 932).
+  - Plan's Step 4 says "In the editor" — cannot use editor locally. Hand-write the `.tscn`. Godot 4.x `.tscn` format: `[gd_scene load_steps=N format=3]`, `[ext_resource type="Script" path="..." id="1_xxx"]`, then `[node name="..." type="Control"]` with `script = ExtResource("1_xxx")`, nested children as `[node name="..." type="Panel" parent="."]`, etc.
+  - **Plan's input-action snippet has a known footgun:** the trailing `; E` inline comment on the `events` line will break the Godot INI parser. Put the comment on its own line or drop it.
+  - Plan's `Object(InputEventKey,"keycode":69)` syntax needs verification for Godot 4.3 exact shape. In practice Godot serializes as `Object(InputEventKey,"keycode":69,"physical_keycode":0,...)` with many fields. Minimal-viable form in 4.3 will usually be `Object(InputEventKey,"keycode":69)` but CI will reveal if not.
+  - `StubDialoguePanel` extends `InteractionPanel` (merged in Task 7) — the `class_name InteractionPanel` global resolves via the plan-added Task 7 file. No autoload involvement; no collision.
+  - The test uses `add_child_autofree` (GUT 9.x API) and `wait_frames(2)` (GUT async) — both standard.
+  - The `_unhandled_input` handler responds to both `ui_cancel` and `interact` — the `interact` binding must exist in `project.godot` before the test can trigger it, but the test calls `panel.close()` directly, not via input, so it's fine even if input wiring is imperfect at test time.
+  - Sonnet recommended — hand-writing `.tscn` benefits from judgment.
+- **Plan reference:** Task 8 at `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` (line 976).
 
 ## Resume prompt (paste this after `/clear`)
 
