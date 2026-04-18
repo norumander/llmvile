@@ -25,7 +25,7 @@ func test_interact_instantiates_panel_and_emits_signal():
 	await wait_frames(1)
 	var started := [false]
 	npc.interaction_started.connect(func(_panel): started[0] = true)
-	var panel := npc.interact()
+	var panel: InteractionPanel = npc.interact()
 	assert_not_null(panel)
 	assert_true(started[0])
 

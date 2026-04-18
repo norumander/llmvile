@@ -16,7 +16,7 @@ func _physics_process(_delta: float) -> void:
 	move_and_slide()
 	$InteractionSystem.recompute_target(global_position)
 	if Input.is_action_just_pressed("interact"):
-		var panel := $InteractionSystem.try_interact()
+		var panel: InteractionPanel = $InteractionSystem.try_interact()
 		if panel != null:
 			panel_requested.emit(panel, $InteractionSystem.current_target)
 
