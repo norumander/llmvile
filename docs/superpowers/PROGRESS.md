@@ -3,7 +3,7 @@
 Single source of truth for where v0.1 execution stands. Updated at the end of every task so any agent resuming work (after context clear, session resume, whatever) can pick up without reading the full transcript.
 
 **Current head of `main`:** see `git log -1 --oneline` — always the latest squash-merge commit.
-**Last updated:** 2026-04-18 after Task 14 completion + CI parse-error hardening ([#31](https://github.com/norumander/llmvile/pull/31)).
+**Last updated:** 2026-04-18 after Task 15 completion ([#33](https://github.com/norumander/llmvile/pull/33)).
 
 ---
 
@@ -26,8 +26,8 @@ Single source of truth for where v0.1 execution stands. Updated at the end of ev
 | 13. Status indicators | ✅ Complete | [#27](https://github.com/norumander/llmvile/pull/27) merged (SHA `67def66`) | Issue [#26](https://github.com/norumander/llmvile/issues/26). Append-only to Task 12's `ui_root.gd` + one node in `.tscn`. CI GREEN first attempt (17s). Combined review ✅. Nits deferred: labels leak when NPCs freed (no despawn in v0.1 so fine); no `register_npc` duplicate-call guard (would double-fire signals); dead `label.set_meta("npc", npc)` kept for plan fidelity. |
 | 14. World scene | ✅ Complete | [#29](https://github.com/norumander/llmvile/pull/29) merged (SHA `c55f673`) | Issue [#28](https://github.com/norumander/llmvile/issues/28). Hand-wrote `world.tscn` with editable-children Camera2D inside Player instance. No tests — scene import is the validation. Uncovered a **silent CI regression** (issue [#30](https://github.com/norumander/llmvile/issues/30)) during the CI-log inspection: `player_controller.gd` and `test_npc_entity.gd` had been parse-erroring for ~3 PRs but CI trusted GUT's exit code and missed it. Pre-existing, not caused by Task 14. |
 | Fix parse errors + harden CI | ✅ Complete | [#31](https://github.com/norumander/llmvile/pull/31) merged (SHA `c5439b4`) | Issue [#30](https://github.com/norumander/llmvile/issues/30). Typed the two `var panel := ...` lines explicitly. Hardened `.github/workflows/ci.yml` to `set -o pipefail` + `grep -E "Parse error\|Failed to load script"` after import and GUT runs. Now GUT totals show `Passing 23, Risky/Pending 0`. Pipefail omission was caught in review — followed up same PR. |
-| 15. Art generation | ⏸ **BLOCKED — needs PixelLab MCP or user decision** | — | PixelLab MCP not available in current tool set. See Open questions below. |
-| 16. Office tilemap | ⏸ Blocked by 14,15 | — | |
+| 15. Art generation | ✅ Complete | [#33](https://github.com/norumander/llmvile/pull/33) merged (SHA `559fd80`) | Issue [#32](https://github.com/norumander/llmvile/issues/32). PixelLab MCP ran inline from controller session (subagents can't inherit MCP tools). CI GREEN first attempt (15s). Combined spec+quality review ✅. Only south-facing rotations shipped for v0.1; 4-dir sheets + animations are v0.2+ work. Character canvas is 48×48 (PixelLab pads for future animations). Floor/wall extracted from a `create_topdown_tileset` Wang tileset (all-lower + all-upper bboxes). Desk via `create_map_object`. |
+| 16. Office tilemap | ⏭ Next up | — | |
 | 17. NPC configs + placement | ⏸ Blocked by 9,16 | — | |
 | 18. Export presets | ⏸ Blocked by 17 | — | |
 | 19. Export build CI | ⏸ Blocked by 18 | — | |
@@ -99,21 +99,19 @@ The **Resume prompt** at the bottom is a stable one-liner — don't edit it per-
 ## Open questions
 
 - **How should controller PROGRESS.md updates reach `main`?** — **Decided 2026-04-18 (Task 4): option 1** — direct-push as admin, trust the GitHub bypass log as audit trail. Each bypass produces a "Bypassed rule violations for refs/heads/main" entry in the repo's bypass log, which gives us the paper trail without the overhead of a PR-per-progress-update. Revisit if audit volume becomes noisy.
-- **How to do Task 15 art without PixelLab MCP?** — **Open.** The current Claude session has no PixelLab MCP (tool set confirmed 2026-04-18). Three viable paths, pending user decision:
-  1. User generates art externally via PixelLab web UI / alternative, drops PNGs in `art/` and `art/tiles/`; controller resumes from Task 16.
-  2. Controller stubs Task 15 with procedurally-generated flat-color placeholder PNGs (e.g., Python one-liner or Godot script producing 32×32 solid-color tiles and a crude shape for player/NPCs). Ships v0.1 with "placeholder art" caveat. File a follow-up issue for real art pass before v0.2.
-  3. Install/connect PixelLab MCP to this session, then dispatch Task 15 normally.
-  Options 1 and 2 unblock the remaining critical path (Tasks 16 → 17 → 18 → 19 → 20 → 21). Option 3 preserves plan fidelity but needs setup.
+- **PixelLab MCP workflow** — **Decided 2026-04-18 (Task 15): controller runs inline.** Subagents spawned via `Task` / `superpowers:subagent-driven-development` don't inherit MCP tools, so art-generation tasks must run in the main controller session (generate, download, crop, commit). Subagents remain the flow for code tasks. Noted for any future PixelLab work.
 
-## Next up: Task 15 — art generation (BLOCKED, see Open questions)
+## Next up: Task 16 — Build the office tilemap
 
-Plan wants PixelLab MCP generation of player + 4 NPC sprites + 3 tile textures. This session has no PixelLab MCP. Controller has paused for user direction (Open questions, option 1/2/3). All engine code through Task 14 is shipped and GREEN; critical path resumes at Task 16 once art lands.
+Plan spec: `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` at line 1775.
 
-**If user picks option 2 (placeholder-art stub), Task 15 becomes:**
-- Generate 32×32 flat-color PNGs for `art/player.png`, `art/npc_01.png`..`npc_04.png`, `art/tiles/floor_wood.png`, `art/tiles/wall.png`, `art/tiles/desk.png` (e.g. via a one-shot GDScript that writes PNGs via `Image.save_png`, or Python with Pillow/stdlib `PIL`-free PPM-to-PNG, or `ffmpeg` from macOS `color=` source).
-- File follow-up issue `art: real pixel art pass before v0.2`.
-- CI GREEN after `--import` processes the new PNGs.
-- Unblocks Task 16 (tilemap authoring).
+Creates `data/tilesets/office.tres` (Godot TileSet with the 3 tile textures, physics layer on wall + desk) and modifies `scenes/world.tscn` to paint a ~16×10 tile room onto the existing `TileMap` node. No new tests — tilemap authoring is validated by `--import` + playtest.
+
+Watch-outs:
+- `.tres` and `.tscn` formats are tricky to hand-author. Task 14 hand-authored `world.tscn`; reference that pattern.
+- Godot 4.6 locally is incompatible with GUT (gotchas above); trust CI at 4.3.
+- Plan's character sprites are 48×48 (PixelLab canvas); tilemap is 32×32. Player/NPC sprites will overhang their tile. That's cosmetic for v0.1.
+- TileSet physics layer needs `TileData` collision polygons on wall + desk tiles.
 
 ## Resume prompt (paste this after `/clear`)
 
