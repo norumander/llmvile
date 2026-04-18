@@ -35,23 +35,49 @@ Single source of truth for where v0.1 execution stands. Updated at the end of ev
 
 ## Workflow (revised from original plan, effective Task 2+)
 
-See the Conventions section at the top of `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md`. Key change from the original plan:
+See the Conventions section at the top of `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md`. Key change: **implementer does NOT merge.** The controller runs reviews and merges.
 
-**Implementer does NOT merge.** Implementer stops at `gh pr create` and reports DONE. Controller runs spec compliance review + code quality review (in that order — never quality first). If reviewers find issues, implementer fixes on the open PR, reviewers re-review. Only when both reviews ✅ does the controller merge.
+### Dispatch
 
-The plan documents each task with a `Step 9: Merge + clean up` block — those are now implementer-stops-at-step-8 + controller-runs-step-9.
+- Use `superpowers:subagent-driven-development` to execute each task.
+- Dispatch a fresh `general-purpose` subagent per task — do NOT reuse between tasks.
+- **Paste the full task text** from the plan into the implementer prompt. Do not make the subagent read the plan file (context budget).
+- Default to `haiku` for mechanical tasks (clear spec, 1–2 files). Use `sonnet` when the task touches multiple systems, needs judgment calls, or involves debugging.
+- Implementer stops at `gh pr create` and reports DONE. They do NOT run `gh pr merge`.
 
-**After every task merges, the controller MUST refresh the Resume prompt at the bottom of this file** so the next session can `/clear` and paste without any manual edits. Specifically: update the task list, the SHA list, Task N specifics, and the "After Task N merges" footer. This is how we keep context clears cheap. Direct-push the update as admin (option 1, decided 2026-04-18).
+### Review (order matters: spec then quality)
 
-Controller merge sequence (copy-paste) — run each command independently, do NOT `&&`-chain, because `gh pr merge --delete-branch` returns exit code 1 on a successful merge when the local branch can't be deleted (worktree holds it):
+1. **Spec compliance reviewer** (`general-purpose`, `sonnet`): verifies the code matches the plan — missing, extra, or misinterpreted requirements. Not code-quality.
+2. **Code quality reviewer** (`superpowers:code-reviewer`): smells, footguns, hygiene. Only run after spec review is ✅.
+3. If either reviewer flags issues, dispatch a fix subagent on the SAME PR, then re-review.
+
+### Merge (controller only, after both reviews ✅)
+
+Run from the main repo directory (not the worktree). Run each command independently — do NOT `&&`-chain, because `gh pr merge --delete-branch` returns exit code 1 on a successful merge when the local branch can't be deleted (worktree holds it):
+
 ```bash
 cd /Users/normanettedgui/development/test/llmvile
-gh pr merge <N> --squash --delete-branch     # add --admin only when CI is expected red; local-delete may fail non-fatally, that's OK
+gh pr merge <N> --squash --delete-branch     # add --admin only when CI is expected red
 git pull
 git worktree remove ../llmvile-issue-<N>
-git branch -D issue/<N>-<slug>               # safe now; worktree gone
+git branch -D issue/<N>-<slug>
 git push origin --delete issue/<N>-<slug> 2>/dev/null || true
 ```
+
+Before dispatching reviews, verify `git worktree list` shows the worktree as a SIBLING of the main repo (not nested inside it). If nested, `git worktree move` first.
+
+`--admin` is ONLY for infra PRs where red CI is expected (Tasks 2 and 3 were the cases). For all real code tasks, CI must stay green; treat red CI as a bug and fix on the PR.
+
+### Post-merge (controller checklist)
+
+After every task merges, the controller MUST update this file so the next session can `/clear` and continue without context:
+
+1. Flip Task N row in **Execution status** to ✅ with PR # + merge SHA; add any noteworthy review findings.
+2. Add any new gotchas to **Gotchas learned so far**.
+3. Replace the **Next up** section with the next task's specifics (TDD? CI expectations? watch-outs?).
+4. Direct-push the PROGRESS.md change to `main` as admin (option 1, decided 2026-04-18). GitHub logs each bypass; that's the audit trail.
+
+The **Resume prompt** at the bottom is a stable one-liner — don't edit it per-task. The per-task details live in **Next up**.
 
 ## Gotchas learned so far
 
@@ -69,40 +95,22 @@ git push origin --delete issue/<N>-<slug> 2>/dev/null || true
 
 - **How should controller PROGRESS.md updates reach `main`?** — **Decided 2026-04-18 (Task 4): option 1** — direct-push as admin, trust the GitHub bypass log as audit trail. Each bypass produces a "Bypassed rule violations for refs/heads/main" entry in the repo's bypass log, which gives us the paper trail without the overhead of a PR-per-progress-update. Revisit if audit volume becomes noisy.
 
-## Resume prompt (paste this after context clear)
+## Next up: Task 5 — `GameRoot` autoload
+
+- **Character:** First TDD task. Pure GDScript + GUT. Write the failing test first, run to confirm RED, implement minimally, run to confirm GREEN, commit.
+- **Files:** `scripts/game_root.gd` (new), `test/unit/test_game_root.gd` (new), `project.godot` (modified — adds `[autoload]` section).
+- **CI:** must stay GREEN. Don't `--admin`; if CI fails, fix the underlying bug on the PR.
+- **Watch-outs:**
+  - Godot INI: no inline `;` comments on value lines (the plan footgun that bit Task 4). When modifying `project.godot`, comments go on their own line or not at all.
+  - The autoload declaration is `GameRoot="*res://scripts/game_root.gd"` — the `*` prefix makes it a singleton. Don't drop it.
+  - `class_name GameRoot` in the script will collide with the autoload name at the global level — the plan's code uses `class_name GameRoot`, which is fine because Godot treats the autoload name and the class_name as the same identifier here. If the implementer hits a "class_name already in use" error, the fix is to drop the `class_name` line, not rename the autoload.
+- **Plan reference:** Task 5 at `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md`.
+
+## Resume prompt (paste this after `/clear`)
 
 ```
 Continue v0.1 execution of llmvile (https://github.com/norumander/llmvile).
-
-State: Tasks 1–4 complete (cde4c31, eb7894b, 905b349, 5e9ae10). Task 5 (GameRoot autoload) is next — first TDD task. Branch protection live on main; CI now runs against a real Godot project and must stay GREEN (no more --admin bypasses).
-
-Read docs/superpowers/PROGRESS.md first for current status, then read the
-Conventions section + Task 5 from docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md.
-
-Workflow (reviewer-gated, effective Task 2+):
-- Implementer (general-purpose subagent, usually haiku) pushes + opens PR, then STOPS. Does not merge.
-- Controller (you) runs spec compliance reviewer → code quality reviewer (superpowers:code-reviewer).
-- If reviewers flag issues, dispatch a fix subagent on the same PR, re-review.
-- After both ✅, controller merges from the main repo directory (NOT the worktree). Run each step independently (don't && chain — gh pr merge --delete-branch exits 1 on successful merge if worktree still holds the local branch):
-  cd /Users/normanettedgui/development/test/llmvile
-  gh pr merge <N> --squash --delete-branch
-  git pull
-  git worktree remove ../llmvile-issue-<N>
-  git branch -D issue/<N>-<slug>
-  git push origin --delete issue/<N>-<slug> 2>/dev/null || true
-
-Verify `git worktree list` shows sibling paths (not nested) before dispatching reviews.
-
-Use superpowers:subagent-driven-development. Paste full task text into implementer prompts — do not make them read the plan file.
-
-Task 5 specifics:
-- Pure GDScript + GUT tests. TDD is non-negotiable: write failing test first, run to confirm RED, implement minimally, run to confirm GREEN, commit.
-- Modifies project.godot (adds [autoload] section for GameRoot). Watch for the plan's own INI gotcha — Godot ini lines don't support inline ; comments on value lines.
-- CI must stay GREEN. If it goes red, fix the bug; do NOT --admin.
-- Files: scripts/game_root.gd (new), test/unit/test_game_root.gd (new), project.godot (modified).
-
-After Task 5 merges:
-- Update PROGRESS.md: Task 5 → ✅, PR # + SHA, new gotchas
-- Update this resume prompt to point at Task 6
-- Direct-push the PROGRESS.md change as admin (decided option 1)
+Read docs/superpowers/PROGRESS.md — it's the source of truth for current
+state, workflow, gotchas, and the next task. Then read that task's spec
+in docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md and proceed.
 ```
