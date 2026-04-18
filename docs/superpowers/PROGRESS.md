@@ -60,6 +60,10 @@ git push origin --delete issue/<N>-<slug> 2>/dev/null || true
 - **Implementer nested the worktree inside the main repo** (`llmvile/llmvile-issue-6` instead of `../llmvile-issue-6`), likely from running `git worktree add` in the wrong CWD. Fixed with `git worktree move llmvile-issue-6 ../llmvile-issue-6` before reviews. For future tasks: always verify `git worktree list` shows sibling paths before dispatching review.
 - **Merging after branch protection with red CI requires `--admin`.** Task 3's own PR was the first test — `gh pr merge <N> --squash --admin --delete-branch` works. The `--admin` flag bypasses required checks because `enforce_admins: false`. Going forward, only use `--admin` when the red CI is expected (e.g., pre-Godot-project infra PRs) and record the bypass reason per `docs/dev-setup.md`.
 
+## Open questions (decide before Task 4)
+
+- **How should controller PROGRESS.md updates reach `main`?** Currently direct-pushed as admin (bypassing branch protection). GitHub logs each bypass ("Bypassed rule violations for refs/heads/main: Changes must be made through a pull request"), so there is an audit trail. Three options: (1) keep direct-push, trust bypass log; (2) open a tiny PR per PROGRESS.md update (overhead but consistent); (3) codify the direct-push exception in `docs/dev-setup.md` and keep direct-pushing. Normid is leaning toward (1); decision pending.
+
 ## Resume prompt (paste this after context clear)
 
 ```
