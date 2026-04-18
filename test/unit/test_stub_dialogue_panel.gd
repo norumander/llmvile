@@ -3,9 +3,14 @@ extends GutTest
 const StubPanelScene := preload("res://scenes/panels/stub_dialogue.tscn")
 
 func _make_fake_npc(name: String) -> Node:
+	var cfg := NpcConfig.new()
+	cfg.display_name = name
 	var npc := Node.new()
-	npc.set("config", NpcConfig.new())
-	npc.config.display_name = name
+	var scr := GDScript.new()
+	scr.source_code = "extends Node\nvar config: NpcConfig"
+	scr.reload()
+	npc.set_script(scr)
+	npc.set("config", cfg)
 	return npc
 
 func test_show_for_sets_npc_name_in_label():
