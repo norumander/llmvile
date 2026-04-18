@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/npc_entity.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://art/_missing.png" id="2_sprite"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_zone"]
+radius = 24.0
+
+[node name="NpcEntity" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_sprite")
+
+[node name="InteractionZone" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionZone"]
+shape = SubResource("CircleShape2D_zone")
