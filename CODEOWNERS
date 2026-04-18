@@ -1,0 +1,3 @@
+# CODEOWNERS
+# Sole maintainer — self-review gate for branch protection.
+*   @norumander

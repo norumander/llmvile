@@ -1,0 +1,22 @@
+name: Feature
+description: A new capability or user-facing behavior
+title: "feat: "
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One-paragraph description of the feature
+    validations: { required: true }
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checklist of must-be-true statements
+      placeholder: "- [ ] …"
+    validations: { required: true }
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes / links
