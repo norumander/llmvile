@@ -124,14 +124,30 @@ cd ../llmvile-issue-<N>
 
 **PR template** (auto-loaded): tick boxes for tests, screenshots (if visual), linked issue, CHANGELOG entry.
 
-**When done with a task:**
+**When done with a task (REVISED after Task 1 — reviewer-gated merge):**
+
+Implementer's job ends at the open PR. **Do NOT merge.** The controller (me) runs spec compliance + code quality reviewers, loops fixes back onto the open PR, and merges only when both reviews pass.
+
 ```bash
+# Implementer:
 git push -u origin issue/<N>-<slug>
 gh pr create --fill --assignee @me --label "area:<area>,type:<type>"
-# wait for CI green, self-review, merge
-gh pr merge --squash --delete-branch
-git worktree remove ../llmvile-issue-<N>
+# STOP HERE. Report back DONE. Do NOT run `gh pr merge`.
 ```
+
+```bash
+# Controller (after both reviews ✅):
+cd /Users/normanettedgui/development/test/llmvile        # main repo, NOT the worktree
+gh pr merge <N> --squash --delete-branch
+git pull
+git worktree remove ../llmvile-issue-<N>
+# Verify remote branch gone:
+git push origin --delete issue/<N>-<slug> 2>/dev/null || true
+```
+
+The `cd` out of the worktree before merging avoids the `fatal: 'main' is already used by worktree` error hit in Task 1. The trailing `git push origin --delete` is belt-and-suspenders — some `gh` versions don't reliably delete the remote branch when run from a worktree context.
+
+Every `Step 9: Merge + clean up worktree` block in Tasks 2–21 below is superseded by this section. Implementer stops at `gh pr create`.
 
 **Test-first discipline:** Every code task starts by writing a failing test, running it to confirm failure, then implementing minimally. TDD is non-negotiable for `scripts/` files.
 
