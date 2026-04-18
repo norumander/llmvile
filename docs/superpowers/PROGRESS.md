@@ -3,7 +3,7 @@
 Single source of truth for where v0.1 execution stands. Updated at the end of every task so any agent resuming work (after context clear, session resume, whatever) can pick up without reading the full transcript.
 
 **Current head of `main`:** see `git log -1 --oneline` — always the latest squash-merge commit.
-**Last updated:** 2026-04-18 after Task 4 completion.
+**Last updated:** 2026-04-18 after Task 5 completion.
 
 ---
 
@@ -15,8 +15,8 @@ Single source of truth for where v0.1 execution stands. Updated at the end of ev
 | 2. CI workflow | ✅ Complete | [#5](https://github.com/norumander/llmvile/pull/5) merged (SHA `eb7894b`) | Issue [#4](https://github.com/norumander/llmvile/issues/4). Code review caught two latent grep false-positives in plan's YAML (GUT summary line, Godot headless ERROR: warnings) + missing job timeout — fixed on same PR (trust exit codes, added `timeout-minutes: 15`). Check ran RED as expected (no Godot project yet). |
 | 3. Branch protection | ✅ Complete | [#7](https://github.com/norumander/llmvile/pull/7) merged (SHA `905b349`) | Issue [#6](https://github.com/norumander/llmvile/issues/6). Branch protection live on `main`: requires `Import + GUT` (strict), linear history, resolved conversations, PR required, no force-push/delete, `enforce_admins: false`. Code review caught hard-coded user path + missing admin-bypass audit tripwire → fixed on same PR. **Admin bypass used** on merge: CI red because no Godot project yet (expected, first infra PR after protection went live). Also: implementer nested the worktree inside main repo; moved with `git worktree move` — gotcha captured below. |
 | 4. Godot init + GUT | ✅ Complete | [#9](https://github.com/norumander/llmvile/pull/9) merged (SHA `5e9ae10`) | Issue [#8](https://github.com/norumander/llmvile/issues/8). First non-infra task. CI ran GREEN on first attempt (Import + GUT passed in 19s). Both reviewers ✅ with no blocking issues. Three 🟢 nits deferred: blue-square `icon.svg` placeholder (Godot default robot icon would be no extra effort but plan didn't specify), `art/_missing.png.import` sidecar will auto-appear first time anyone opens the editor (harmless), `run/main_scene="res://scenes/world.tscn"` targets a not-yet-existent scene (plan-sanctioned; headless import just parses). |
-| 5. GameRoot autoload | ⏭ Next | — | First TDD task — write failing test → implement → run → commit. |
-| 6. NpcStatus + NpcConfig | ⏸ Blocked by 5 | — | |
+| 5. GameRoot autoload | ✅ Complete | [#11](https://github.com/norumander/llmvile/pull/11) merged (SHA `43af10c`) | Issue [#10](https://github.com/norumander/llmvile/issues/10). First TDD task. CI GREEN first attempt (19s). Spec ✅. Code quality ✅ with 3 deferred 🟢 nits: `pop_panel` silently no-ops on unknown panel (could add `assert`), `panel_stack` exposed publicly-mutable (could prefix `_`), no test for the signal-dedupe behavior. Plan's `class_name GameRoot` dropped per plan's own documented fallback (Godot 4.6 makes autoload-name/class-name collision a hard error now). |
+| 6. NpcStatus + NpcConfig | ⏭ Next | — | |
 | 7. InteractionPanel base | ⏸ Blocked by 5 | — | |
 | 8. StubDialoguePanel | ⏸ Blocked by 7 | — | |
 | 9. NpcEntity | ⏸ Blocked by 6,7 | — | |
@@ -90,21 +90,24 @@ The **Resume prompt** at the bottom is a stable one-liner — don't edit it per-
 - **Merging after branch protection with red CI requires `--admin`.** Task 3's own PR was the first test — `gh pr merge <N> --squash --admin --delete-branch` works. The `--admin` flag bypasses required checks because `enforce_admins: false`. Going forward, only use `--admin` when the red CI is expected (e.g., pre-Godot-project infra PRs) and record the bypass reason per `docs/dev-setup.md`.
 - **`gh pr merge --delete-branch` cannot delete the local branch while its worktree still exists.** The remote merge + remote-branch delete succeeds, but the CLI then exits 1 trying to delete the local branch (`error: cannot delete branch 'issue/N-slug' used by worktree at '...'`). The merge itself is fine. Run each cleanup command independently (don't `&&`-chain), remove the worktree, then `git branch -D` explicitly. Merge sequence in the Conventions section is updated to reflect this.
 - **Stale local + remote feature branches from prior tasks remain:** `issue/4-ci-workflow` (Task 2), `issue/6-branch-protection` (Task 3). `--delete-branch` didn't fully clean up on those merges either. Housekeeping: `git branch -D issue/4-ci-workflow issue/6-branch-protection` + `git push origin --delete ...` when convenient. Not blocking — they just clutter `git branch -a`.
+- **Godot 4.6 locally vs. 4.3 in CI diverges on two things that will keep biting us.** First: GUT 9.x appears incompatible with Godot 4.6 (fails with `SCRIPT ERROR: Parse Error: The member "Logger" shadows a native class` in `addons/gut/utils.gd`). CI uses 4.3 per `.github/workflows/ci.yml` and is fine. **Verdict: do not run GUT locally on this repo with 4.6 — trust CI.** Second: opening/importing the project with 4.6 generates `.uid` sidecar files (new in 4.4+) and re-writes `.import` files, and `.gitignore` doesn't cover them yet. That's why Task 5's worktree cleanup needed `--force remove`. Near-term fix is a `.gitignore` entry for `*.uid`; for now, force-remove worktrees after merges.
+- **Autoload name + `class_name` is a hard error in Godot 4.6** (`Class "GameRoot" hides an autoload singleton`). The plan's code samples all include `class_name Foo` on singletons — drop that line for every autoload we add (GameRoot done in Task 5, watch for it in 11, etc.). The autoload name alone is enough to reference the singleton globally.
 
 ## Open questions
 
 - **How should controller PROGRESS.md updates reach `main`?** — **Decided 2026-04-18 (Task 4): option 1** — direct-push as admin, trust the GitHub bypass log as audit trail. Each bypass produces a "Bypassed rule violations for refs/heads/main" entry in the repo's bypass log, which gives us the paper trail without the overhead of a PR-per-progress-update. Revisit if audit volume becomes noisy.
 
-## Next up: Task 5 — `GameRoot` autoload
+## Next up: Task 6 — `NpcStatus` enum + `NpcConfig` Resource
 
-- **Character:** First TDD task. Pure GDScript + GUT. Write the failing test first, run to confirm RED, implement minimally, run to confirm GREEN, commit.
-- **Files:** `scripts/game_root.gd` (new), `test/unit/test_game_root.gd` (new), `project.godot` (modified — adds `[autoload]` section).
-- **CI:** must stay GREEN. Don't `--admin`; if CI fails, fix the underlying bug on the PR.
+- **Character:** TDD. Pure GDScript + GUT + two hand-written `.tres` fixtures.
+- **Files:** `scripts/npc_status.gd`, `scripts/npc_config.gd`, `test/unit/test_npc_config.gd`, `test/fixtures/valid_npc.tres`, `test/fixtures/invalid_npc_no_panel.tres`.
+- **CI:** must stay GREEN. No `--admin`.
 - **Watch-outs:**
-  - Godot INI: no inline `;` comments on value lines (the plan footgun that bit Task 4). When modifying `project.godot`, comments go on their own line or not at all.
-  - The autoload declaration is `GameRoot="*res://scripts/game_root.gd"` — the `*` prefix makes it a singleton. Don't drop it.
-  - `class_name GameRoot` in the script will collide with the autoload name at the global level — the plan's code uses `class_name GameRoot`, which is fine because Godot treats the autoload name and the class_name as the same identifier here. If the implementer hits a "class_name already in use" error, the fix is to drop the `class_name` line, not rename the autoload.
-- **Plan reference:** Task 5 at `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md`.
+  - Plan's Step 5 says to create `.tres` fixtures **in the editor**. Since Godot 4.6 breaks GUT locally, the implementer must hand-write the `.tres` text files. Format: `[gd_resource type="Resource" script_class="NpcConfig" load_steps=N format=3]` with `[ext_resource]` blocks for script/sprite/panel, then `[resource]` with the fields. CI's `--import` pass will stamp uids and reimport; the fixtures load fine as long as the text parses.
+  - Plan says the placeholder `panel_scene` can be `res://addons/gut/GutRunner.tscn`. That file moved under `addons/gut/gui/GutRunner.tscn` in GUT 9.x — verify the path exists before committing. (`find addons/gut -name "*.tscn"`)
+  - `class_name NpcStatus` and `class_name NpcConfig` are fine here — no autoload collision (they're not autoloads, unlike GameRoot). The test file calls `NpcStatus.Status.IDLE` which requires `class_name NpcStatus` to be present.
+  - The test fixture's sprite points at `res://art/_missing.png` — that file already exists from Task 4.
+- **Plan reference:** Task 6 at `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` (line 837).
 
 ## Resume prompt (paste this after `/clear`)
 
