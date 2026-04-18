@@ -17,9 +17,9 @@
 3. TDD: write a failing test, run it, implement minimally, run again, commit.
 4. Push the branch and open the PR with `gh pr create --fill`. **Stop there** — do not merge.
 5. Spec compliance review and code quality review gate the merge. See `docs/superpowers/PROGRESS.md` for the full reviewer-gated workflow.
-6. After the controller merges and removes the remote branch, clean up locally:
+6. After the controller merges and removes the remote branch, clean up locally (run from the main repo checkout, not the worktree):
    ```bash
-   cd /Users/normanettedgui/development/test/llmvile
+   cd <path-to-main-llmvile-checkout>
    git pull
    git worktree remove ../llmvile-issue-<N>
    ```
@@ -33,7 +33,7 @@
 - All PR conversations resolved
 - No force pushes, no deletions
 
-Admins (repo owner) can bypass the CI check for infrastructure PRs that legitimately cannot run the check yet (e.g., pre-Godot-project tasks). Use `gh pr merge --admin` sparingly and only when the redness is expected.
+Admins (repo owner) can bypass the CI check for infrastructure PRs that legitimately cannot run the check yet (e.g., pre-Godot-project tasks). Use `gh pr merge --admin` sparingly and only when the redness is expected. When bypassing, record the reason in the PR description and add a one-line note under the task entry in `docs/superpowers/PROGRESS.md` so the audit trail is scannable.
 
 ## Running tests locally
 
