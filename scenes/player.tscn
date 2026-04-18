@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://art/_missing.png" id="2_sprite"]
+[ext_resource type="Script" path="res://scripts/interaction_system.gd" id="3_system"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(24, 24)
@@ -18,7 +19,13 @@ texture = ExtResource("2_sprite")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_body")
 
+[node name="InteractionSystem" type="Node" parent="."]
+script = ExtResource("3_system")
+
 [node name="InteractionZone" type="Area2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionZone"]
 shape = SubResource("CircleShape2D_zone")
+
+[connection signal="area_entered" from="InteractionZone" to="." method="_on_interaction_zone_area_entered"]
+[connection signal="area_exited" from="InteractionZone" to="." method="_on_interaction_zone_area_exited"]
