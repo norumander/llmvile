@@ -33,9 +33,20 @@ jobs:
         run: echo "$HOME/godot" >> $GITHUB_PATH
 
       - name: Import project (headless)
-        run: godot --headless --import
+        run: |
+          set -o pipefail
+          godot --headless --import 2>&1 | tee import.log
+          if grep -E "Parse error|Failed to load script" import.log; then
+            echo "::error::Godot reported parse / load errors during import"
+            exit 1
+          fi
 
       - name: Run GUT tests
         run: |
+          set -o pipefail
           godot --headless -s res://addons/gut/gut_cmdln.gd \
-              -gdir=res://test/unit -gexit
+              -gdir=res://test/unit -gexit 2>&1 | tee gut.log
+          if grep -E "Parse error|Failed to load script" gut.log; then
+            echo "::error::Godot reported parse / load errors during test run"
+            exit 1
+          fi
