@@ -1,0 +1,30 @@
+[gd_resource type="TileSet" load_steps=7 format=3]
+
+[ext_resource type="Texture2D" path="res://art/tiles/floor_wood.png" id="1_floor"]
+[ext_resource type="Texture2D" path="res://art/tiles/wall.png" id="2_wall"]
+[ext_resource type="Texture2D" path="res://art/tiles/desk.png" id="3_desk"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_floor"]
+texture = ExtResource("1_floor")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_wall"]
+texture = ExtResource("2_wall")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_desk"]
+texture = ExtResource("3_desk")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+
+[resource]
+physics_layer_0/collision_layer = 1
+physics_layer_0/collision_mask = 1
+tile_size = Vector2i(32, 32)
+sources/0 = SubResource("TileSetAtlasSource_floor")
+sources/1 = SubResource("TileSetAtlasSource_wall")
+sources/2 = SubResource("TileSetAtlasSource_desk")
