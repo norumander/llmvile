@@ -3,7 +3,7 @@
 Single source of truth for where v0.1 execution stands. Updated at the end of every task so any agent resuming work (after context clear, session resume, whatever) can pick up without reading the full transcript.
 
 **Current head of `main`:** see `git log -1 --oneline` — always the latest squash-merge commit.
-**Last updated:** 2026-04-18 after Task 18 completion ([#39](https://github.com/norumander/llmvile/pull/39)).
+**Last updated:** 2026-04-18 after Task 19 completion ([#41](https://github.com/norumander/llmvile/pull/41) + follow-up [#43](https://github.com/norumander/llmvile/pull/43)).
 
 ---
 
@@ -30,8 +30,8 @@ Single source of truth for where v0.1 execution stands. Updated at the end of ev
 | 16. Office tilemap | ✅ Complete | [#35](https://github.com/norumander/llmvile/pull/35) merged (SHA `11af8e7`) | Issue [#34](https://github.com/norumander/llmvile/issues/34). Hand-authored `data/tilesets/office.tres` + Python-encoded `tile_data` PackedInt32Array (16×10 room, perimeter walls, 4 desks, interior floor). Player spawn at (256, 160) lands on floor. CI GREEN first attempt (17s). Combined review ✅. |
 | 17. NPC configs + placement | ✅ Complete | [#37](https://github.com/norumander/llmvile/pull/37) merged (SHA `75a5e81`) | Issue [#36](https://github.com/norumander/llmvile/issues/36). Hand-authored 4 `NpcConfig` .tres files (Claude/Codex/Gemini/Spare) + instanced on desks in `world.tscn` with `groups=["npc"]`. CI GREEN first attempt (15s). Combined review ✅. Standing `uid=` tech-debt continued; file follow-up before v0.2. |
 | 18. Export presets | ✅ Complete | [#39](https://github.com/norumander/llmvile/pull/39) merged (SHA `37fb37f`) | Issue [#38](https://github.com/norumander/llmvile/issues/38). Hand-authored `export_presets.cfg` (two presets: `macOS` universal, `Windows Desktop` x86_64, both unsigned, bundle id `com.norumander.llmvile`, version `0.1.0`). Reference skeleton pulled from a public Godot 4.3 project (adaliszk/absorboid-game) and trimmed. Removed `export_presets.cfg` from `.gitignore`. CI GREEN first attempt (15s) — but CI only validates import; actual export execution is Task 19's job. Combined review ✅. Local templates never installed; `godot --headless --export-release` not run locally (editor+4.6 blocker). |
-| 19. Export build CI | ⏭ Next up | — | |
-| 20. Playtest | ⏸ Blocked by 17,19 | — | |
+| 19. Export build CI | ✅ Complete | [#41](https://github.com/norumander/llmvile/pull/41) merged (SHA `cfd000d`); ETC2-ASTC fix [#43](https://github.com/norumander/llmvile/pull/43) (SHA `3d12a96`) | Issue [#40](https://github.com/norumander/llmvile/issues/40). Matrix workflow — macOS native on `macos-latest`, Windows cross-export on `ubuntu-latest`. First manual dispatch passed Windows but macOS failed with `Cannot export for universal or arm64 if ETC2 ASTC texture format is disabled`; filed [#42](https://github.com/norumander/llmvile/issues/42) + shipped one-line fix ([#43](https://github.com/norumander/llmvile/pull/43)) adding `textures/vram_compression/import_etc2_astc=true` to `project.godot`. Re-dispatched workflow: both jobs ✅ (`llmvile-macOS` + `llmvile-Windows` artifacts uploaded, 30-day retention). Template dir needed branching on `$RUNNER_OS` (macOS = `~/Library/Application Support/Godot/...`, Linux = `~/.local/share/godot/...`) — plan's snippet was Linux-only. |
+| 20. Playtest | ⏭ Next up | — | Blocked on human playtesting — needs Normid to download both artifacts from the Build workflow run and actually drive the player around. |
 | 21. v0.1.0 release | ⏸ Blocked by 20 | — | Also fixes issue [#3](https://github.com/norumander/llmvile/issues/3). |
 
 ## Workflow (revised from original plan, effective Task 2+)
