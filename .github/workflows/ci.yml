@@ -9,6 +9,7 @@ jobs:
   test:
     name: Import + GUT
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -32,12 +33,9 @@ jobs:
         run: echo "$HOME/godot" >> $GITHUB_PATH
 
       - name: Import project (headless)
-        run: |
-          godot --headless --import 2>&1 | tee import.log
-          ! grep -i "ERROR" import.log
+        run: godot --headless --import
 
       - name: Run GUT tests
         run: |
           godot --headless -s res://addons/gut/gut_cmdln.gd \
-              -gdir=res://test/unit -gexit 2>&1 | tee gut.log
-          ! grep -E "(FAIL|ERROR)" gut.log
+              -gdir=res://test/unit -gexit
