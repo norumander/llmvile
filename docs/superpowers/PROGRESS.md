@@ -3,7 +3,7 @@
 Single source of truth for where v0.1 execution stands. Updated at the end of every task so any agent resuming work (after context clear, session resume, whatever) can pick up without reading the full transcript.
 
 **Current head of `main`:** see `git log -1 --oneline` — always the latest squash-merge commit.
-**Last updated:** 2026-04-18 after Task 7 completion.
+**Last updated:** 2026-04-18 after Task 8 completion.
 
 ---
 
@@ -18,8 +18,8 @@ Single source of truth for where v0.1 execution stands. Updated at the end of ev
 | 5. GameRoot autoload | ✅ Complete | [#11](https://github.com/norumander/llmvile/pull/11) merged (SHA `43af10c`) | Issue [#10](https://github.com/norumander/llmvile/issues/10). First TDD task. CI GREEN first attempt (19s). Spec ✅. Code quality ✅ with 3 deferred 🟢 nits: `pop_panel` silently no-ops on unknown panel (could add `assert`), `panel_stack` exposed publicly-mutable (could prefix `_`), no test for the signal-dedupe behavior. Plan's `class_name GameRoot` dropped per plan's own documented fallback (Godot 4.6 makes autoload-name/class-name collision a hard error now). |
 | 6. NpcStatus + NpcConfig | ✅ Complete | [#13](https://github.com/norumander/llmvile/pull/13) merged (SHA `ec7337a`) | Issue [#12](https://github.com/norumander/llmvile/issues/12). Hand-wrote `.tres` fixtures (editor unusable locally — Godot 4.6 / GUT incompat). CI GREEN first attempt (14s, 4/4 tests). Spec ✅. Code quality ✅ with a deferred follow-up: both fixtures omit `uid="uid://..."` on the `[gd_resource]` header, so first editor import will auto-generate one and dirty the working tree. Task 17 (NPC configs + placement) should set the pattern of including an explicit `uid=` when creating new `.tres` files. |
 | 7. InteractionPanel base | ✅ Complete | [#15](https://github.com/norumander/llmvile/pull/15) merged (SHA `325cc31`) | Issue [#14](https://github.com/norumander/llmvile/issues/14). Trivial 13-line file. CI GREEN first attempt (12s). Combined spec+quality review (scope was too small for two). ✅ across the board. |
-| 8. StubDialoguePanel | ⏭ Next | — | |
-| 9. NpcEntity | ⏸ Blocked by 6,7 | — | |
+| 8. StubDialoguePanel | ✅ Complete | [#17](https://github.com/norumander/llmvile/pull/17) merged (SHA `54666f5`) | Issue [#16](https://github.com/norumander/llmvile/issues/16). Hand-wrote the `.tscn`. 2 CI iterations: first attempt failed because the plan's `Node.set("config", ...)` in the test helper doesn't work under Godot 4's typed Nodes — implementer fixed by attaching an inline GDScript with `var config: NpcConfig` on the fake NPC. Second CI went green. Code quality review caught `var name` shadowing `Node.name` — fixed (renamed to `display_name`) in a follow-up commit on the same PR. Three deferred 🟢 nits: test helper's runtime-compiled GDScript could be replaced with a named inner-class `FakeNpc extends Node` (cleaner pattern for future panel tests); `show_for` doesn't guard against empty `display_name`; `project.godot` input action uses `keycode` not `physical_keycode` (may surprise non-QWERTY users). |
+| 9. NpcEntity | ⏭ Next | — | |
 | 10. PlayerController | ⏸ Blocked by 5 | — | |
 | 11. InteractionSystem | ⏸ Blocked by 9,10 | — | |
 | 12. UIRoot | ⏸ Blocked by 8,11 | — | |
@@ -92,25 +92,26 @@ The **Resume prompt** at the bottom is a stable one-liner — don't edit it per-
 - **Stale local + remote feature branches from prior tasks remain:** `issue/4-ci-workflow` (Task 2), `issue/6-branch-protection` (Task 3). `--delete-branch` didn't fully clean up on those merges either. Housekeeping: `git branch -D issue/4-ci-workflow issue/6-branch-protection` + `git push origin --delete ...` when convenient. Not blocking — they just clutter `git branch -a`.
 - **Godot 4.6 locally vs. 4.3 in CI diverges on two things that will keep biting us.** First: GUT 9.x appears incompatible with Godot 4.6 (fails with `SCRIPT ERROR: Parse Error: The member "Logger" shadows a native class` in `addons/gut/utils.gd`). CI uses 4.3 per `.github/workflows/ci.yml` and is fine. **Verdict: do not run GUT locally on this repo with 4.6 — trust CI.** Second: opening/importing the project with 4.6 generates `.uid` sidecar files (new in 4.4+) and re-writes `.import` files, and `.gitignore` doesn't cover them yet. That's why Task 5's worktree cleanup needed `--force remove`. Near-term fix is a `.gitignore` entry for `*.uid`; for now, force-remove worktrees after merges.
 - **Autoload name + `class_name` is a hard error in Godot 4.6** (`Class "GameRoot" hides an autoload singleton`). The plan's code samples all include `class_name Foo` on singletons — drop that line for every autoload we add (GameRoot done in Task 5, watch for it in 11, etc.). The autoload name alone is enough to reference the singleton globally.
+- **Plan's fake-node test helper pattern (`Node.set("config", ...)`) does NOT work in Godot 4's typed Nodes** — the plan writes `npc.set("config", NpcConfig.new())` on a plain `Node`, but Godot 4 rejects setting arbitrary properties on a typed node that doesn't declare them. Fix: either attach a runtime GDScript with `var config: NpcConfig` (Task 8 implementer's fix — works but is ugly), or define a named inner class `FakeNpc extends Node: var config: NpcConfig` at the top of the test file (cleaner — recommended for Task 9+). Either way: plan code that does `set("<name>", <value>)` on an untyped Node is a red flag during review.
+- **Plan's input-action snippet in `project.godot` uses the minimal `Object(InputEventKey,"keycode":69)` form that Godot 4.3 rejects.** Expand to the full serialization form with `"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":69,"physical_keycode":0,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null` — that's what Godot writes when the editor saves. **Also consider `physical_keycode` vs `keycode`** — keycode-only bindings surprise AZERTY/Dvorak players. v0.1 uses `keycode`; revisit for i18n polish.
 
 ## Open questions
 
 - **How should controller PROGRESS.md updates reach `main`?** — **Decided 2026-04-18 (Task 4): option 1** — direct-push as admin, trust the GitHub bypass log as audit trail. Each bypass produces a "Bypassed rule violations for refs/heads/main" entry in the repo's bypass log, which gives us the paper trail without the overhead of a PR-per-progress-update. Revisit if audit volume becomes noisy.
 
-## Next up: Task 8 — `StubDialoguePanel`
+## Next up: Task 9 — `NpcEntity`
 
-- **Character:** TDD. Script + hand-written `.tscn` + GUT tests + `[input]` additions in `project.godot`. Medium-complex.
-- **Files:** `scripts/stub_dialogue_panel.gd`, `scenes/panels/stub_dialogue.tscn`, `test/unit/test_stub_dialogue_panel.gd`, `project.godot` (add `interact` action).
-- **CI:** must stay GREEN. No `--admin`.
+- **Character:** TDD. Node2D scene + script with config/status/signals + 3 GUT tests. Second hand-written `.tscn` of the project.
+- **Files:** `scripts/npc_entity.gd`, `scenes/npc.tscn`, `test/unit/test_npc_entity.gd`.
+- **CI:** GREEN. No `--admin`.
 - **Watch-outs:**
-  - Plan's Step 4 says "In the editor" — cannot use editor locally. Hand-write the `.tscn`. Godot 4.x `.tscn` format: `[gd_scene load_steps=N format=3]`, `[ext_resource type="Script" path="..." id="1_xxx"]`, then `[node name="..." type="Control"]` with `script = ExtResource("1_xxx")`, nested children as `[node name="..." type="Panel" parent="."]`, etc.
-  - **Plan's input-action snippet has a known footgun:** the trailing `; E` inline comment on the `events` line will break the Godot INI parser. Put the comment on its own line or drop it.
-  - Plan's `Object(InputEventKey,"keycode":69)` syntax needs verification for Godot 4.3 exact shape. In practice Godot serializes as `Object(InputEventKey,"keycode":69,"physical_keycode":0,...)` with many fields. Minimal-viable form in 4.3 will usually be `Object(InputEventKey,"keycode":69)` but CI will reveal if not.
-  - `StubDialoguePanel` extends `InteractionPanel` (merged in Task 7) — the `class_name InteractionPanel` global resolves via the plan-added Task 7 file. No autoload involvement; no collision.
-  - The test uses `add_child_autofree` (GUT 9.x API) and `wait_frames(2)` (GUT async) — both standard.
-  - The `_unhandled_input` handler responds to both `ui_cancel` and `interact` — the `interact` binding must exist in `project.godot` before the test can trigger it, but the test calls `panel.close()` directly, not via input, so it's fine even if input wiring is imperfect at test time.
-  - Sonnet recommended — hand-writing `.tscn` benefits from judgment.
-- **Plan reference:** Task 8 at `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` (line 976).
+  - Plan's Step 4 says "In the editor" — hand-write `scenes/npc.tscn`. Needs: root `NpcEntity` `Node2D` with script, child `Sprite2D` with texture `_missing.png`, child `Area2D` named `InteractionZone` with child `CollisionShape2D` holding a `CircleShape2D` sub-resource (radius 24).
+  - **Fake-NPC pattern:** the plan's test uses the scene itself (`NpcScene.instantiate()`), so no fake-Node helper is needed — just set `npc.config = _make_cfg()` on the instanced entity. Cleaner than Task 8's situation.
+  - `class_name NpcEntity` fine (not an autoload).
+  - The `status` setter emits `status_changed` only on real change — the test asserts 2 emits across 3 assignments (one identity-assignment in the middle). Keep the dedupe guard.
+  - `_ready()` calls `queue_free()` if no config — the tests set config BEFORE `add_child`, so `_ready` sees valid config. Fine.
+  - Sonnet recommended.
+- **Plan reference:** Task 9 at `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` (line 1079).
 
 ## Resume prompt (paste this after `/clear`)
 
