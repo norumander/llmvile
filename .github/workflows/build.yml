@@ -1,0 +1,75 @@
+name: Build
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+jobs:
+  export:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macOS
+            os: macos-latest
+            preset: "macOS"
+            output: llmvile.app
+          - platform: Windows
+            os: ubuntu-latest
+            preset: "Windows Desktop"
+            output: llmvile.exe
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot 4.3-stable
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            curl -L -o godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_macos.universal.zip
+            unzip -q godot.zip -d "$HOME/godot"
+            echo "$HOME/godot/Godot.app/Contents/MacOS" >> "$GITHUB_PATH"
+          else
+            curl -L -o godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+            unzip -q godot.zip -d "$HOME/godot"
+            chmod +x "$HOME/godot/Godot_v4.3-stable_linux.x86_64"
+            ln -s "$HOME/godot/Godot_v4.3-stable_linux.x86_64" "$HOME/godot/godot"
+            echo "$HOME/godot" >> "$GITHUB_PATH"
+          fi
+
+      - name: Install export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            TPL_DIR="$HOME/Library/Application Support/Godot/export_templates/4.3.stable"
+          else
+            TPL_DIR="$HOME/.local/share/godot/export_templates/4.3.stable"
+          fi
+          mkdir -p "$TPL_DIR"
+          curl -L -o tpl.tpz https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          unzip -q tpl.tpz -d /tmp/tpl
+          mv /tmp/tpl/templates/* "$TPL_DIR/"
+
+      - name: Import project
+        shell: bash
+        run: godot --headless --import
+
+      - name: Export ${{ matrix.platform }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p builds
+          godot --headless --export-release "${{ matrix.preset }}" "builds/${{ matrix.output }}"
+          ls -la builds/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: llmvile-${{ matrix.platform }}
+          path: builds/
+          if-no-files-found: error
+          retention-days: 30
