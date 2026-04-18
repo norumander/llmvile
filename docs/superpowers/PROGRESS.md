@@ -3,7 +3,7 @@
 Single source of truth for where v0.1 execution stands. Updated at the end of every task so any agent resuming work (after context clear, session resume, whatever) can pick up without reading the full transcript.
 
 **Current head of `main`:** see `git log -1 --oneline` — always the latest squash-merge commit.
-**Last updated:** 2026-04-18 after Task 16 completion ([#35](https://github.com/norumander/llmvile/pull/35)).
+**Last updated:** 2026-04-18 after Task 17 completion ([#37](https://github.com/norumander/llmvile/pull/37)).
 
 ---
 
@@ -28,8 +28,8 @@ Single source of truth for where v0.1 execution stands. Updated at the end of ev
 | Fix parse errors + harden CI | ✅ Complete | [#31](https://github.com/norumander/llmvile/pull/31) merged (SHA `c5439b4`) | Issue [#30](https://github.com/norumander/llmvile/issues/30). Typed the two `var panel := ...` lines explicitly. Hardened `.github/workflows/ci.yml` to `set -o pipefail` + `grep -E "Parse error\|Failed to load script"` after import and GUT runs. Now GUT totals show `Passing 23, Risky/Pending 0`. Pipefail omission was caught in review — followed up same PR. |
 | 15. Art generation | ✅ Complete | [#33](https://github.com/norumander/llmvile/pull/33) merged (SHA `559fd80`) | Issue [#32](https://github.com/norumander/llmvile/issues/32). PixelLab MCP ran inline from controller session (subagents can't inherit MCP tools). CI GREEN first attempt (15s). Combined spec+quality review ✅. Only south-facing rotations shipped for v0.1; 4-dir sheets + animations are v0.2+ work. Character canvas is 48×48 (PixelLab pads for future animations). Floor/wall extracted from a `create_topdown_tileset` Wang tileset (all-lower + all-upper bboxes). Desk via `create_map_object`. |
 | 16. Office tilemap | ✅ Complete | [#35](https://github.com/norumander/llmvile/pull/35) merged (SHA `11af8e7`) | Issue [#34](https://github.com/norumander/llmvile/issues/34). Hand-authored `data/tilesets/office.tres` + Python-encoded `tile_data` PackedInt32Array (16×10 room, perimeter walls, 4 desks, interior floor). Player spawn at (256, 160) lands on floor. CI GREEN first attempt (17s). Combined review ✅. |
-| 17. NPC configs + placement | ⏭ Next up | — | |
-| 18. Export presets | ⏸ Blocked by 17 | — | |
+| 17. NPC configs + placement | ✅ Complete | [#37](https://github.com/norumander/llmvile/pull/37) merged (SHA `75a5e81`) | Issue [#36](https://github.com/norumander/llmvile/issues/36). Hand-authored 4 `NpcConfig` .tres files (Claude/Codex/Gemini/Spare) + instanced on desks in `world.tscn` with `groups=["npc"]`. CI GREEN first attempt (15s). Combined review ✅. Standing `uid=` tech-debt continued; file follow-up before v0.2. |
+| 18. Export presets | ⏭ Next up | — | |
 | 19. Export build CI | ⏸ Blocked by 18 | — | |
 | 20. Playtest | ⏸ Blocked by 17,19 | — | |
 | 21. v0.1.0 release | ⏸ Blocked by 20 | — | Also fixes issue [#3](https://github.com/norumander/llmvile/issues/3). |
@@ -101,16 +101,16 @@ The **Resume prompt** at the bottom is a stable one-liner — don't edit it per-
 - **How should controller PROGRESS.md updates reach `main`?** — **Decided 2026-04-18 (Task 4): option 1** — direct-push as admin, trust the GitHub bypass log as audit trail. Each bypass produces a "Bypassed rule violations for refs/heads/main" entry in the repo's bypass log, which gives us the paper trail without the overhead of a PR-per-progress-update. Revisit if audit volume becomes noisy.
 - **PixelLab MCP workflow** — **Decided 2026-04-18 (Task 15): controller runs inline.** Subagents spawned via `Task` / `superpowers:subagent-driven-development` don't inherit MCP tools, so art-generation tasks must run in the main controller session (generate, download, crop, commit). Subagents remain the flow for code tasks. Noted for any future PixelLab work.
 
-## Next up: Task 17 — Create 4 NPC configs + place in world
+## Next up: Task 18 — Export presets (macOS + Windows)
 
-Plan spec: `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` at line 1799.
+Plan spec: `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` at line 1827.
 
-Creates `data/npcs/npc_01.tres` … `npc_04.tres` (`NpcConfig` resources pointing at the PixelLab NPC sprites + stub_dialogue panel) and modifies `scenes/world.tscn` to instance 4 `scenes/npc.tscn`, assign configs, position over desks from Task 16 ((4,3), (11,3), (4,6), (11,6) in tile coords → world coords ×32 + half-tile centering), add to group `"npc"`.
+Creates `export_presets.cfg` with macOS and Windows Desktop presets (both unsigned), and removes `export_presets.cfg` from `.gitignore`.
 
 Watch-outs:
-- Task 6 hand-wrote `.tres` fixtures without `uid="uid://..."` — first editor import will dirty those. Set pattern here: include explicit `uid=` on each `.tres`.
-- NPC placement: each desk is at world (tile.x*32 + 16, tile.y*32 + 16). Place NPC one tile south of desk so they appear in front of it (player can walk behind).
-- Group `"npc"` is the status-indicator system's discovery mechanism (Task 13 `ui_root.gd`).
+- Plan Step 2–4 assumes Godot editor authoring. Local Godot 4.6 is broken on this project — we've been hand-authoring all `.tres`/`.tscn` so far. Hand-author the `.cfg` too, get close enough for CI/Task 19 to exercise, iterate on failure.
+- Bundle id: `com.norumander.llmvile`. Short/long version: `0.1.0`.
+- Real local export (Step 5–6 — install templates, verify artifact launches) is not feasible in this session; CI (Task 19) is the verification. Flag as tech-debt or follow-up.
 
 ## Resume prompt (paste this after `/clear`)
 
