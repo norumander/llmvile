@@ -3,7 +3,7 @@
 Single source of truth for where v0.1 execution stands. Updated at the end of every task so any agent resuming work (after context clear, session resume, whatever) can pick up without reading the full transcript.
 
 **Current head of `main`:** see `git log -1 --oneline` — always the latest squash-merge commit.
-**Last updated:** 2026-04-18 — **v0.1.0 shipped.** PR [#48](https://github.com/norumander/llmvile/pull/48) squash-merged (SHA `a7ebc16`), tag `v0.1.0` pushed, tagged Build run 24613670255 ✅ both platforms, [release](https://github.com/norumander/llmvile/releases/tag/v0.1.0) created with macOS `.app` + Windows `.exe` zips attached, milestone [v0.1 Walkable Overworld](https://github.com/norumander/llmvile/milestone/1) closed. Next up: v0.2 art pass.
+**Last updated:** 2026-04-18 — **v0.1.1 shipped.** Art pass PR [#53](https://github.com/norumander/llmvile/pull/53) squash-merged (SHA `244cf40`), tag `v0.1.1` pushed, tagged Build run 24615916530 ✅ both platforms, [release v0.1.1](https://github.com/norumander/llmvile/releases/tag/v0.1.1) with macOS `.app` + Windows `.exe` zips attached, milestone [v0.1.1 Art Pass](https://github.com/norumander/llmvile/milestone/5) closed. Housekeeping PR [#52](https://github.com/norumander/llmvile/pull/52) (`*.uid` gitignore + dev-setup iterate loop) also merged as SHA `cbd0bec`. Next up: v0.2 Terminal MVP.
 
 ---
 
