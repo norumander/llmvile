@@ -27,6 +27,9 @@ window/stretch/aspect="keep"
 [editor_plugins]
 enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
+[autoload]
+GameRoot="*res://scripts/game_root.gd"
+
 [rendering]
 textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
