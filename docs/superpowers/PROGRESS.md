@@ -3,7 +3,7 @@
 Single source of truth for where v0.1 execution stands. Updated at the end of every task so any agent resuming work (after context clear, session resume, whatever) can pick up without reading the full transcript.
 
 **Current head of `main`:** see `git log -1 --oneline` — always the latest squash-merge commit.
-**Last updated:** 2026-04-18 after Task 17 completion ([#37](https://github.com/norumander/llmvile/pull/37)).
+**Last updated:** 2026-04-18 after Task 18 completion ([#39](https://github.com/norumander/llmvile/pull/39)).
 
 ---
 
@@ -29,8 +29,8 @@ Single source of truth for where v0.1 execution stands. Updated at the end of ev
 | 15. Art generation | ✅ Complete | [#33](https://github.com/norumander/llmvile/pull/33) merged (SHA `559fd80`) | Issue [#32](https://github.com/norumander/llmvile/issues/32). PixelLab MCP ran inline from controller session (subagents can't inherit MCP tools). CI GREEN first attempt (15s). Combined spec+quality review ✅. Only south-facing rotations shipped for v0.1; 4-dir sheets + animations are v0.2+ work. Character canvas is 48×48 (PixelLab pads for future animations). Floor/wall extracted from a `create_topdown_tileset` Wang tileset (all-lower + all-upper bboxes). Desk via `create_map_object`. |
 | 16. Office tilemap | ✅ Complete | [#35](https://github.com/norumander/llmvile/pull/35) merged (SHA `11af8e7`) | Issue [#34](https://github.com/norumander/llmvile/issues/34). Hand-authored `data/tilesets/office.tres` + Python-encoded `tile_data` PackedInt32Array (16×10 room, perimeter walls, 4 desks, interior floor). Player spawn at (256, 160) lands on floor. CI GREEN first attempt (17s). Combined review ✅. |
 | 17. NPC configs + placement | ✅ Complete | [#37](https://github.com/norumander/llmvile/pull/37) merged (SHA `75a5e81`) | Issue [#36](https://github.com/norumander/llmvile/issues/36). Hand-authored 4 `NpcConfig` .tres files (Claude/Codex/Gemini/Spare) + instanced on desks in `world.tscn` with `groups=["npc"]`. CI GREEN first attempt (15s). Combined review ✅. Standing `uid=` tech-debt continued; file follow-up before v0.2. |
-| 18. Export presets | ⏭ Next up | — | |
-| 19. Export build CI | ⏸ Blocked by 18 | — | |
+| 18. Export presets | ✅ Complete | [#39](https://github.com/norumander/llmvile/pull/39) merged (SHA `37fb37f`) | Issue [#38](https://github.com/norumander/llmvile/issues/38). Hand-authored `export_presets.cfg` (two presets: `macOS` universal, `Windows Desktop` x86_64, both unsigned, bundle id `com.norumander.llmvile`, version `0.1.0`). Reference skeleton pulled from a public Godot 4.3 project (adaliszk/absorboid-game) and trimmed. Removed `export_presets.cfg` from `.gitignore`. CI GREEN first attempt (15s) — but CI only validates import; actual export execution is Task 19's job. Combined review ✅. Local templates never installed; `godot --headless --export-release` not run locally (editor+4.6 blocker). |
+| 19. Export build CI | ⏭ Next up | — | |
 | 20. Playtest | ⏸ Blocked by 17,19 | — | |
 | 21. v0.1.0 release | ⏸ Blocked by 20 | — | Also fixes issue [#3](https://github.com/norumander/llmvile/issues/3). |
 
@@ -101,16 +101,18 @@ The **Resume prompt** at the bottom is a stable one-liner — don't edit it per-
 - **How should controller PROGRESS.md updates reach `main`?** — **Decided 2026-04-18 (Task 4): option 1** — direct-push as admin, trust the GitHub bypass log as audit trail. Each bypass produces a "Bypassed rule violations for refs/heads/main" entry in the repo's bypass log, which gives us the paper trail without the overhead of a PR-per-progress-update. Revisit if audit volume becomes noisy.
 - **PixelLab MCP workflow** — **Decided 2026-04-18 (Task 15): controller runs inline.** Subagents spawned via `Task` / `superpowers:subagent-driven-development` don't inherit MCP tools, so art-generation tasks must run in the main controller session (generate, download, crop, commit). Subagents remain the flow for code tasks. Noted for any future PixelLab work.
 
-## Next up: Task 18 — Export presets (macOS + Windows)
+## Next up: Task 19 — Export build in CI (macOS + Windows)
 
-Plan spec: `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` at line 1827.
+Plan spec: `docs/superpowers/plans/2026-04-17-v01-walkable-overworld.md` at line 1855.
 
-Creates `export_presets.cfg` with macOS and Windows Desktop presets (both unsigned), and removes `export_presets.cfg` from `.gitignore`.
+Creates `.github/workflows/build.yml` — matrix (macOS + Windows) job that installs Godot 4.3 + export templates, runs `godot --headless --export-release "macOS" builds/llmvile.app` and the Windows equivalent, uploads build artifacts. Triggers on tag push (e.g. `v*`) and/or workflow_dispatch.
 
 Watch-outs:
-- Plan Step 2–4 assumes Godot editor authoring. Local Godot 4.6 is broken on this project — we've been hand-authoring all `.tres`/`.tscn` so far. Hand-author the `.cfg` too, get close enough for CI/Task 19 to exercise, iterate on failure.
-- Bundle id: `com.norumander.llmvile`. Short/long version: `0.1.0`.
-- Real local export (Step 5–6 — install templates, verify artifact launches) is not feasible in this session; CI (Task 19) is the verification. Flag as tech-debt or follow-up.
+- This is the first real validation that Task 18's hand-authored `export_presets.cfg` actually works. Expect to iterate — missing fields, wrong path defaults, etc.
+- Godot 4.3 templates must match the engine version exactly. Download URL: `https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz`. Templates install to `~/Library/Application Support/Godot/export_templates/4.3.stable/` (macOS runner) or `%APPDATA%\Godot\export_templates\4.3.stable\` (Windows runner).
+- macOS export produces a `.app` bundle (or `.zip` if `export/distribution_type != 0` — ours is `0`); Windows produces `.exe` + `.pck` (unless `binary_format/embed_pck=true`; ours is `false` → both files). Artifact upload needs to include both.
+- Keep it to `ubuntu-latest` + `macos-latest` + `windows-latest` runners; the macOS runner can export the universal macOS binary, Windows runner exports the .exe. Don't cross-compile.
+- Task 20 (playtest) is blocked on this producing real artifacts humans can run — so the upload needs to be `actions/upload-artifact@v4` with a reasonable name/retention.
 
 ## Resume prompt (paste this after `/clear`)
 
