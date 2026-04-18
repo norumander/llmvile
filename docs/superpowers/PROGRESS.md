@@ -41,6 +41,8 @@ See the Conventions section at the top of `docs/superpowers/plans/2026-04-17-v01
 
 The plan documents each task with a `Step 9: Merge + clean up` block — those are now implementer-stops-at-step-8 + controller-runs-step-9.
 
+**After every task merges, the controller MUST refresh the Resume prompt at the bottom of this file** so the next session can `/clear` and paste without any manual edits. Specifically: update the task list, the SHA list, Task N specifics, and the "After Task N merges" footer. This is how we keep context clears cheap. Direct-push the update as admin (option 1, decided 2026-04-18).
+
 Controller merge sequence (copy-paste) — run each command independently, do NOT `&&`-chain, because `gh pr merge --delete-branch` returns exit code 1 on a successful merge when the local branch can't be deleted (worktree holds it):
 ```bash
 cd /Users/normanettedgui/development/test/llmvile
