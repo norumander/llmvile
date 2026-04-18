@@ -4,10 +4,10 @@ class_name StubDialoguePanel
 @onready var _label: Label = $Panel/Label
 
 func show_for(npc: Node) -> void:
-	var name := "an NPC"
+	var display_name := "an NPC"
 	if npc != null and npc.get("config") != null:
-		name = npc.config.display_name
-	_label.text = "%s: coming soon — claude code" % name
+		display_name = npc.config.display_name
+	_label.text = "%s: coming soon — claude code" % display_name
 	visible = true
 
 func get_label_text() -> String:
