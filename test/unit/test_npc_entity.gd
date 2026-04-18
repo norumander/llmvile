@@ -1,11 +1,12 @@
 extends GutTest
 
 const NpcScene := preload("res://scenes/npc.tscn")
+const TestFrames := preload("res://test/fixtures/test_sprite_frames.tres")
 
 func _make_cfg() -> NpcConfig:
 	var cfg := NpcConfig.new()
 	cfg.display_name = "T"
-	cfg.sprite = preload("res://art/_missing.png")
+	cfg.sprite_frames = TestFrames
 	cfg.desk_position = Vector2i.ZERO
 	cfg.panel_scene = preload("res://scenes/panels/stub_dialogue.tscn")
 	cfg.kind = &"stub"
@@ -16,7 +17,9 @@ func test_applies_config_on_ready():
 	npc.config = _make_cfg()
 	add_child_autofree(npc)
 	await wait_frames(1)
-	assert_eq(npc.get_node("Sprite2D").texture, npc.config.sprite)
+	var sprite: AnimatedSprite2D = npc.get_node("AnimatedSprite2D")
+	assert_eq(sprite.sprite_frames, npc.config.sprite_frames)
+	assert_eq(sprite.animation, &"idle_south")
 
 func test_interact_instantiates_panel_and_emits_signal():
 	var npc: Node = NpcScene.instantiate()
@@ -28,6 +31,7 @@ func test_interact_instantiates_panel_and_emits_signal():
 	var panel: InteractionPanel = npc.interact()
 	assert_not_null(panel)
 	assert_true(started[0])
+	panel.queue_free()
 
 func test_status_change_emits_exactly_once():
 	var npc: Node = NpcScene.instantiate()

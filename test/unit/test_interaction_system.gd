@@ -6,7 +6,7 @@ const NpcScene := preload("res://scenes/npc.tscn")
 func _make_npc(at: Vector2) -> Node:
 	var cfg := NpcConfig.new()
 	cfg.display_name = "T"
-	cfg.sprite = preload("res://art/_missing.png")
+	cfg.sprite_frames = preload("res://test/fixtures/test_sprite_frames.tres")
 	cfg.panel_scene = preload("res://scenes/panels/stub_dialogue.tscn")
 	var npc = NpcScene.instantiate()
 	npc.config = cfg

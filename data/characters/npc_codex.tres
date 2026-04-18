@@ -1,0 +1,125 @@
+[gd_resource type="SpriteFrames" load_steps=21 format=3]
+
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/idle_south/frame_000.png" id="t_1"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/idle_east/frame_000.png" id="t_2"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/idle_north/frame_000.png" id="t_3"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/idle_west/frame_000.png" id="t_4"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_south/frame_000.png" id="t_5"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_south/frame_001.png" id="t_6"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_south/frame_002.png" id="t_7"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_south/frame_003.png" id="t_8"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_east/frame_000.png" id="t_9"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_east/frame_001.png" id="t_10"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_east/frame_002.png" id="t_11"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_east/frame_003.png" id="t_12"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_north/frame_000.png" id="t_13"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_north/frame_001.png" id="t_14"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_north/frame_002.png" id="t_15"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_north/frame_003.png" id="t_16"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_west/frame_000.png" id="t_17"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_west/frame_001.png" id="t_18"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_west/frame_002.png" id="t_19"]
+[ext_resource type="Texture2D" path="res://art/characters/npc_codex/walk_west/frame_003.png" id="t_20"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("t_1")
+}],
+"loop": true,
+"name": &"idle_south",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("t_2")
+}],
+"loop": true,
+"name": &"idle_east",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("t_3")
+}],
+"loop": true,
+"name": &"idle_north",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("t_4")
+}],
+"loop": true,
+"name": &"idle_west",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("t_5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t_6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t_7")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t_8")
+}],
+"loop": true,
+"name": &"walk_south",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("t_9")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t_10")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t_11")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t_12")
+}],
+"loop": true,
+"name": &"walk_east",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("t_13")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t_14")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t_15")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t_16")
+}],
+"loop": true,
+"name": &"walk_north",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("t_17")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t_18")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t_19")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t_20")
+}],
+"loop": true,
+"name": &"walk_west",
+"speed": 8.0
+}]
