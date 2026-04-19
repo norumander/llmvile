@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-19
+
+### Added
+- Real persistent terminals per NPC via the vendored `godot-xterm` v4.0.3 addon. Each NPC spawns a native OS subwindow running `$SHELL` in a full PTY. Windows open at 85% of the game window, centered, with semi-transparent background.
+- `TerminalNpcFactory` dynamically spawns terminal NPCs. Game starts with one pre-placed NPC; a `+ new terminal` HUD button and `N` hotkey spawn more at the next free desk. Fifth spawn attempt toasts "All desks full".
+- Status indicators now reflect session state: `..` while output is streaming (panel closed), `!` once the session has been quiet for ≥1.5 seconds with unread output.
+- Shell exit (`exit` / Ctrl-D / process death) removes the NPC from the world.
+- In-panel X close button + click-outside dismiss (terminal auto-closes when the game window receives focus).
+- SubViewport-based architecture: game renders at 640×360 pixel-art, stretched to fill the window; terminal panels render at native OS resolution with real cell sizes and transparency.
+
+### Changed
+- `NpcConfig` simplified to `display_name` + `sprite_frames` only. Factory owns placement and panel assignment.
+- `scenes/npc.tscn` no longer pre-sets textures; NpcEntity owns a TerminalPanel instance from `_ready`.
+- `scenes/world.tscn` no longer contains static NPC instances; content wrapped in a `SubViewport` under `Main`. UIRoot sits outside the subviewport so UI renders crisply at native resolution.
+- `PlayerController`: walk animation now freezes when input is paused (matching velocity behavior); interact key ignored while a panel is open.
+- Project now uses `window/stretch/mode="disabled"` with a SubViewportContainer providing the pixel-art upscale. `embed_subwindows=false` and `per_pixel_transparency/allowed=true` enable native windows.
+
+### Removed
+- `scenes/panels/stub_dialogue.tscn`, `scripts/stub_dialogue_panel.gd`, and all v0.1 `data/npcs/npc_*.tres` fixtures.
+- `test/fixtures/invalid_npc_no_panel.tres`.
+
+### Fixed
+- Panel reparenting across NpcEntity → UIRoot tripped the PTY's shell (process died on tree exit). Panels now live under `UIRoot.PanelHost` from spawn; no reparenting on interact.
+- NPC status indicator labels use the canvas transform so they track NPCs across the SubViewport boundary as the camera moves.
+
 ## [0.1.1] - 2026-04-18
 
 ### Added
@@ -55,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPCs were placed on the desk tile itself instead of one tile south of the desk.
 - macOS universal export required `rendering/textures/vram_compression/import_etc2_astc=true` in `project.godot`.
 
-[Unreleased]: https://github.com/norumander/llmvile/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/norumander/llmvile/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/norumander/llmvile/releases/tag/v0.2.0
 [0.1.1]: https://github.com/norumander/llmvile/releases/tag/v0.1.1
 [0.1.0]: https://github.com/norumander/llmvile/releases/tag/v0.1.0
