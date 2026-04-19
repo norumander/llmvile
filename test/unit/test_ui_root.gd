@@ -1,7 +1,7 @@
 extends GutTest
 
 const UIRootScene := preload("res://scenes/ui/ui_root.tscn")
-const StubPanelScene := preload("res://scenes/panels/stub_dialogue.tscn")
+const StubPanelScene := preload("res://test/fixtures/test_terminal_panel.tscn")
 
 func test_show_prompt_sets_visible_and_positions():
 	var ui: CanvasLayer = UIRootScene.instantiate()

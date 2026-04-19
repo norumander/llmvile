@@ -42,23 +42,27 @@ func show_for(npc) -> void:
 	_panel_opened = true
 	_has_been_opened_once = true
 	_has_unread = false
-	# Size to 85% of the game window, centered.
+	visible = true
+	if npc != null and npc.config != null:
+		title = npc.config.display_name
+	_set_status(NpcStatus.Status.IDLE)
+	# Size + transparency need a real game window and a registered window id;
+	# defer so unit tests (which run this Window outside a GameViewport) skip.
+	call_deferred("_apply_size_and_transparency")
+	_terminal.grab_focus()
+
+func _apply_size_and_transparency() -> void:
 	var game: Window = get_tree().root
+	if game == null or game.size.x == 0:
+		return
 	size = Vector2i(game.size.x * 0.85, game.size.y * 0.85)
 	position = Vector2i(
 		game.position.x + (game.size.x - size.x) / 2,
 		game.position.y + (game.size.y - size.y) / 2,
 	)
-	visible = true
-	# Window id is only valid once visible. Apply per-pixel transparency.
-	await get_tree().process_frame
 	var wid: int = get_window_id()
 	if wid != -1:
 		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_TRANSPARENT, true, wid)
-	_terminal.grab_focus()
-	if npc != null and npc.config != null:
-		title = npc.config.display_name
-	_set_status(NpcStatus.Status.IDLE)
 
 func close() -> void:
 	_panel_opened = false
