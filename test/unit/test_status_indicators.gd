@@ -7,9 +7,9 @@ func _make_npc() -> NpcEntity:
 	var cfg := NpcConfig.new()
 	cfg.display_name = "T"
 	cfg.sprite_frames = preload("res://test/fixtures/test_sprite_frames.tres")
-	cfg.panel_scene = preload("res://scenes/panels/stub_dialogue.tscn")
 	var npc: NpcEntity = NpcScene.instantiate()
 	npc.config = cfg
+	npc.panel_scene_override = preload("res://test/fixtures/test_terminal_panel.tscn")
 	return npc
 
 func test_notify_status_shows_bang():

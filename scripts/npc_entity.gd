@@ -5,7 +5,11 @@ signal interaction_started(panel: InteractionPanel)
 signal interaction_ended
 signal status_changed(new_status: NpcStatus.Status)
 
+const DEFAULT_PANEL_SCENE := preload("res://scenes/panels/terminal.tscn")
+
 @export var config: NpcConfig
+## For tests only — substitute a panel scene with a mock PTY.
+var panel_scene_override: PackedScene
 
 var status: NpcStatus.Status = NpcStatus.Status.IDLE :
 	set(value):
@@ -13,6 +17,8 @@ var status: NpcStatus.Status = NpcStatus.Status.IDLE :
 			return
 		status = value
 		status_changed.emit(value)
+
+var _panel: InteractionPanel
 
 func _ready() -> void:
 	if config == null:
@@ -27,17 +33,25 @@ func _ready() -> void:
 	sprite.sprite_frames = config.sprite_frames
 	sprite.play("idle_south")
 
+	var scene: PackedScene = panel_scene_override if panel_scene_override != null else DEFAULT_PANEL_SCENE
+	_panel = scene.instantiate()
+	_panel.visible = false
+	add_child(_panel)
+
+	if _panel.has_signal("status_changed"):
+		_panel.status_changed.connect(func(s): status = s)
+	if _panel.has_signal("session_ended"):
+		_panel.session_ended.connect(_on_session_ended)
+	_panel.panel_closed.connect(_on_panel_closed)
+
 func interact() -> InteractionPanel:
-	if config == null or config.panel_scene == null:
-		push_error("Cannot interact: missing panel_scene")
-		return null
-	var panel := config.panel_scene.instantiate() as InteractionPanel
-	if panel == null:
-		push_error("panel_scene did not produce an InteractionPanel")
-		return null
-	panel.panel_closed.connect(_on_panel_closed)
-	interaction_started.emit(panel)
-	return panel
+	interaction_started.emit(_panel)
+	return _panel
+
+func _on_session_ended() -> void:
+	if _panel != null and _panel.visible:
+		_panel.close()
+	queue_free()
 
 func _on_panel_closed() -> void:
 	interaction_ended.emit()
