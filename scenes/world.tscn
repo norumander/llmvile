@@ -1,15 +1,14 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/world.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
-[ext_resource type="PackedScene" path="res://scenes/ui/ui_root.tscn" id="3_ui"]
 [ext_resource type="TileSet" path="res://data/tilesets/office.tres" id="4_tileset"]
-[ext_resource type="PackedScene" path="res://scenes/npc.tscn" id="5_npc"]
-[ext_resource type="Resource" path="res://data/npcs/npc_01.tres" id="6_cfg_01"]
-[ext_resource type="Resource" path="res://data/npcs/npc_02.tres" id="7_cfg_02"]
-[ext_resource type="Resource" path="res://data/npcs/npc_03.tres" id="8_cfg_03"]
-[ext_resource type="Resource" path="res://data/npcs/npc_04.tres" id="9_cfg_04"]
 [ext_resource type="Texture2D" path="res://art/tiles/desk.png" id="10_desk"]
+[ext_resource type="Script" path="res://scripts/terminal_npc_factory.gd" id="11_factory"]
+[ext_resource type="SpriteFrames" path="res://data/characters/npc_claude.tres" id="12_pf2"]
+[ext_resource type="SpriteFrames" path="res://data/characters/npc_codex.tres" id="13_pf3"]
+[ext_resource type="SpriteFrames" path="res://data/characters/npc_gemini.tres" id="14_pf4"]
+[ext_resource type="SpriteFrames" path="res://data/characters/npc_spare.tres" id="15_pf5"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_script")
@@ -45,20 +44,7 @@ position = Vector2(256, 160)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 zoom = Vector2(1, 1)
 
-[node name="NpcClaude" parent="." instance=ExtResource("5_npc") groups=["npc"]]
-position = Vector2(144, 144)
-config = ExtResource("6_cfg_01")
+[node name="Factory" type="Node" parent="."]
+script = ExtResource("11_factory")
+sprite_frames_pool = Array[SpriteFrames]([ExtResource("12_pf2"), ExtResource("13_pf3"), ExtResource("14_pf4"), ExtResource("15_pf5")])
 
-[node name="NpcCodex" parent="." instance=ExtResource("5_npc") groups=["npc"]]
-position = Vector2(368, 144)
-config = ExtResource("7_cfg_02")
-
-[node name="NpcGemini" parent="." instance=ExtResource("5_npc") groups=["npc"]]
-position = Vector2(144, 240)
-config = ExtResource("8_cfg_03")
-
-[node name="NpcSpare" parent="." instance=ExtResource("5_npc") groups=["npc"]]
-position = Vector2(368, 240)
-config = ExtResource("9_cfg_04")
-
-[node name="UIRoot" parent="." instance=ExtResource("3_ui")]

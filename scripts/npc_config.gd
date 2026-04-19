@@ -3,9 +3,6 @@ class_name NpcConfig
 
 @export var display_name: String = ""
 @export var sprite_frames: SpriteFrames
-@export var desk_position: Vector2i = Vector2i.ZERO
-@export var panel_scene: PackedScene
-@export var kind: StringName = &"stub"
 
 func is_valid() -> bool:
-	return display_name != "" and sprite_frames != null and panel_scene != null
+	return display_name != "" and sprite_frames != null

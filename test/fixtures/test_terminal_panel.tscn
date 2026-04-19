@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/terminal_panel.gd" id="1_script"]
+[ext_resource type="Script" path="res://test/fixtures/mock_pty.gd" id="2_pty"]
+[ext_resource type="Script" path="res://test/fixtures/mock_terminal.gd" id="3_term"]
+
+[node name="TerminalPanel" type="Window"]
+visible = false
+script = ExtResource("1_script")
+
+[node name="PTY" type="Node" parent="."]
+script = ExtResource("2_pty")
+
+[node name="Terminal" type="Control" parent="."]
+script = ExtResource("3_term")
+
+[node name="StatusTimer" type="Timer" parent="."]
+wait_time = 0.1
+autostart = true

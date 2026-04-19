@@ -62,3 +62,19 @@ First run after a fresh checkout will need an import pass (GDScript + art + tile
 Why twice: Godot imports resources lazily on first open, and GUT's image cache triggers a one-time "restart required" message that the second pass clears. After that, regular `--path .` launches work normally.
 
 CI artifacts (from the Build workflow) are only needed for release verification — don't reach for them while iterating.
+
+## Known gotchas
+
+### macOS: godot-xterm dylib quarantine
+
+On first checkout, macOS may quarantine the vendored `.framework` inside `addons/godot_xterm/lib/`, causing `pty.fork()` to fail silently with `posix_spawnp: Permission denied`. Clear it with:
+
+```bash
+xattr -dr com.apple.quarantine addons/godot_xterm
+```
+
+The cleared state persists in-place.
+
+### macOS: transparent terminal loses title bar
+
+Godot 4.3's native subwindow transparency flag currently drops the OS title bar on macOS when applied. The terminal panel ships with an in-panel X close button (top-right corner) as a fallback. Click-outside dismissal also works.

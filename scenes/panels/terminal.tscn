@@ -1,0 +1,46 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/terminal_panel.gd" id="1_script"]
+
+[sub_resource type="StyleBoxEmpty" id="empty_panel"]
+
+[node name="TerminalPanel" type="Window"]
+title = "NPC"
+initial_position = 1
+size = Vector2i(640, 360)
+visible = false
+unresizable = true
+transparent_bg = true
+theme_override_styles/panel = SubResource("empty_panel")
+script = ExtResource("1_script")
+
+[node name="PTY" type="PTY" parent="."]
+
+[node name="Terminal" type="Terminal" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+focus_mode = 2
+theme_override_colors/background_color = Color(0, 0, 0, 0.5)
+theme_override_font_sizes/font_size = 18
+
+
+[node name="CloseButton" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -32.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = 28.0
+text = "X"
+tooltip_text = "Close (or click outside the window)"
+theme_override_font_sizes/font_size = 16
+
+[node name="StatusTimer" type="Timer" parent="."]
+wait_time = 0.1
+autostart = true

@@ -36,7 +36,11 @@ jobs:
         run: |
           set -o pipefail
           godot --headless --import 2>&1 | tee import.log
-          if grep -E "Parse error|Failed to load script" import.log; then
+          # godot-xterm's editor_terminal.gd references the Terminal class which
+          # only resolves when the editor loads GDExtensions; under --headless
+          # it always fails to parse. Filter that known-benign line out.
+          if grep -E "Parse error|Failed to load script" import.log \
+              | grep -vE "addons/godot_xterm/editor_plugins/"; then
             echo "::error::Godot reported parse / load errors during import"
             exit 1
           fi
@@ -46,7 +50,8 @@ jobs:
           set -o pipefail
           godot --headless -s res://addons/gut/gut_cmdln.gd \
               -gdir=res://test/unit -gexit 2>&1 | tee gut.log
-          if grep -E "Parse error|Failed to load script" gut.log; then
+          if grep -E "Parse error|Failed to load script" gut.log \
+              | grep -vE "addons/godot_xterm/editor_plugins/"; then
             echo "::error::Godot reported parse / load errors during test run"
             exit 1
           fi
