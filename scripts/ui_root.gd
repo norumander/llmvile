@@ -2,11 +2,19 @@ extends CanvasLayer
 class_name UIRootNode
 ## Hosts the press-E prompt and whichever panel is currently open.
 
+signal spawn_requested
+
 @onready var _prompt: Label = $Prompt
 @onready var _panel_host: Control = $PanelHost
 @onready var _indicator_layer: Node2D = $IndicatorLayer
+@onready var _hud: Control = $Hud
 
 var _indicators: Dictionary = {}  # NpcEntity -> Label
+# Panel -> original parent (so we can reparent back on close)
+var _panel_origins: Dictionary = {}
+
+func _ready() -> void:
+	_hud.spawn_requested.connect(func(): spawn_requested.emit())
 
 func show_prompt(world_pos: Vector2) -> void:
 	_prompt.visible = true
@@ -19,13 +27,18 @@ func get_prompt_node() -> Label:
 	return _prompt
 
 func show_panel_for(panel: InteractionPanel, npc: NpcEntity) -> void:
-	_panel_host.add_child(panel)
+	_panel_origins[panel] = panel.get_parent()
+	panel.reparent(_panel_host)
 	panel.panel_closed.connect(_on_panel_closed.bind(panel), CONNECT_ONE_SHOT)
 	GameRoot.push_panel(panel)
 	panel.show_for(npc)
 
 func _on_panel_closed(panel: InteractionPanel) -> void:
 	GameRoot.pop_panel(panel)
+	var origin: Node = _panel_origins.get(panel)
+	_panel_origins.erase(panel)
+	if origin != null and is_instance_valid(origin) and is_instance_valid(panel):
+		panel.reparent(origin)
 
 func register_npc(npc: NpcEntity) -> void:
 	var label := Label.new()
@@ -60,3 +73,6 @@ func get_indicator_text_for(npc: NpcEntity) -> String:
 
 func get_indicator_for(npc: NpcEntity) -> Label:
 	return _indicators[npc]
+
+func show_toast(msg: String) -> void:
+	_hud.show_toast(msg)
