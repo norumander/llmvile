@@ -37,8 +37,8 @@ func test_interact_returns_same_panel_each_call():
 	await wait_frames(1)
 	var started := [false]
 	npc.interaction_started.connect(func(_p): started[0] = true)
-	var first: InteractionPanel = npc.interact()
-	var second: InteractionPanel = npc.interact()
+	var first: Node = npc.interact()
+	var second: Node = npc.interact()
 	assert_same(first, second)
 	assert_true(started[0])
 

@@ -12,9 +12,8 @@ signal spawn_requested
 var _indicators: Dictionary = {}  # NpcEntity -> Label
 
 func _ready() -> void:
-	# Scale the whole UI layer 2x to match the game's pixel-art upscale.
-	scale = Vector2(2, 2)
 	_hud.spawn_requested.connect(func(): spawn_requested.emit())
+	_prompt.add_theme_font_size_override("font_size", 24)
 
 func show_prompt(world_pos: Vector2) -> void:
 	_prompt.visible = true
@@ -30,12 +29,12 @@ func get_prompt_node() -> Label:
 func get_panel_host() -> Control:
 	return _panel_host
 
-func show_panel_for(panel: InteractionPanel, npc: NpcEntity) -> void:
+func show_panel_for(panel: Node, npc: NpcEntity) -> void:
 	panel.panel_closed.connect(_on_panel_closed.bind(panel), CONNECT_ONE_SHOT)
 	GameRoot.push_panel(panel)
 	panel.show_for(npc)
 
-func _on_panel_closed(panel: InteractionPanel) -> void:
+func _on_panel_closed(panel: Node) -> void:
 	GameRoot.pop_panel(panel)
 
 func register_npc(npc: NpcEntity) -> void:

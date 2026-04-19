@@ -1,7 +1,7 @@
 extends CharacterBody2D
 class_name PlayerController
 
-signal panel_requested(panel: InteractionPanel, npc: NpcEntity)
+signal panel_requested(panel: Node, npc: NpcEntity)
 
 @export var speed: float = 140.0
 
@@ -21,7 +21,7 @@ func _physics_process(_delta: float) -> void:
 	_update_animation(input_dir)
 	$InteractionSystem.recompute_target(global_position)
 	if not GameRoot.world_input_paused and Input.is_action_just_pressed("interact"):
-		var panel: InteractionPanel = $InteractionSystem.try_interact()
+		var panel: Node = $InteractionSystem.try_interact()
 		if panel != null:
 			panel_requested.emit(panel, $InteractionSystem.current_target)
 

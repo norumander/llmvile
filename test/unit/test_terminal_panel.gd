@@ -68,7 +68,7 @@ func test_pty_exit_emits_session_ended():
 func test_input_forwarded_terminal_to_pty():
 	var panel := _make_panel()
 	await wait_frames(1)
-	var term: Node = panel.get_node("Frame/Terminal")
+	var term: Node = panel.get_node("Terminal")
 	term.data_sent.emit("abc".to_utf8_buffer())
 	var writes: Array = panel.get_node("PTY").write_calls
 	assert_eq(writes.size(), 1)
@@ -78,6 +78,6 @@ func test_output_forwarded_pty_to_terminal():
 	var panel := _make_panel()
 	await wait_frames(1)
 	panel.get_node("PTY").emit_output("xyz")
-	var writes: Array = panel.get_node("Frame/Terminal").written
+	var writes: Array = panel.get_node("Terminal").written
 	assert_eq(writes.size(), 1)
 	assert_eq(writes[0], "xyz".to_utf8_buffer())

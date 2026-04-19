@@ -1,32 +1,17 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/terminal_panel.gd" id="1_script"]
 [ext_resource type="Script" path="res://test/fixtures/mock_pty.gd" id="2_pty"]
 [ext_resource type="Script" path="res://test/fixtures/mock_terminal.gd" id="3_term"]
 
-[node name="TerminalPanel" type="Control"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+[node name="TerminalPanel" type="Window"]
+visible = false
 script = ExtResource("1_script")
 
 [node name="PTY" type="Node" parent="."]
 script = ExtResource("2_pty")
 
-[node name="Frame" type="Panel" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-
-[node name="TitleBar" type="HBoxContainer" parent="Frame"]
-
-[node name="Title" type="Label" parent="Frame/TitleBar"]
-text = "TEST"
-
-[node name="CloseButton" type="Button" parent="Frame/TitleBar"]
-text = "X"
-
-[node name="Terminal" type="Control" parent="Frame"]
+[node name="Terminal" type="Control" parent="."]
 script = ExtResource("3_term")
 
 [node name="StatusTimer" type="Timer" parent="."]

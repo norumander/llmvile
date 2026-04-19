@@ -19,7 +19,7 @@ func test_hide_prompt_hides_node():
 func test_show_panel_pushes_to_gameroot_and_removes_on_close():
 	var ui: CanvasLayer = UIRootScene.instantiate()
 	add_child_autofree(ui)
-	var panel: InteractionPanel = StubPanelScene.instantiate()
+	var panel: Node = StubPanelScene.instantiate()
 	ui.show_panel_for(panel, null)
 	assert_true(GameRoot.world_input_paused)
 	panel.close()

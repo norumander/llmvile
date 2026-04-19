@@ -23,6 +23,8 @@ window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="disabled"
 window/stretch/aspect="ignore"
+window/subwindows/embed_subwindows=false
+window/per_pixel_transparency/allowed=true
 
 [editor_plugins]
 enabled=PackedStringArray("res://addons/gut/plugin.cfg", "res://addons/godot_xterm/plugin.cfg")

@@ -1,7 +1,7 @@
 extends Node2D
 class_name NpcEntity
 
-signal interaction_started(panel: InteractionPanel)
+signal interaction_started(panel: Node)
 signal interaction_ended
 signal status_changed(new_status: NpcStatus.Status)
 
@@ -21,7 +21,7 @@ var status: NpcStatus.Status = NpcStatus.Status.IDLE :
 		status = value
 		status_changed.emit(value)
 
-var _panel: InteractionPanel
+var _panel: Node
 
 func _ready() -> void:
 	if config == null:
@@ -52,7 +52,7 @@ func _ready() -> void:
 		if is_instance_valid(_panel):
 			_panel.queue_free())
 
-func interact() -> InteractionPanel:
+func interact() -> Node:
 	interaction_started.emit(_panel)
 	return _panel
 

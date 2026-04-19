@@ -1,6 +1,6 @@
 extends Node2D
 
-signal panel_requested(panel: InteractionPanel, npc: NpcEntity)
+signal panel_requested(panel: Node, npc: NpcEntity)
 signal target_changed(npc: NpcEntity)
 signal spawn_succeeded(npc: NpcEntity)
 signal spawn_failed(reason: String)

@@ -29,7 +29,7 @@ func recompute_target(player_pos: Vector2) -> void:
 		current_target = closest
 		target_changed.emit(current_target)
 
-func try_interact() -> InteractionPanel:
+func try_interact() -> Node:
 	if GameRoot.world_input_paused or current_target == null:
 		return null
 	return current_target.interact()

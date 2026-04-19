@@ -2,50 +2,44 @@
 
 [ext_resource type="Script" path="res://scripts/terminal_panel.gd" id="1_script"]
 
-[node name="TerminalPanel" type="Control"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 0
+[sub_resource type="StyleBoxEmpty" id="empty_panel"]
+
+[node name="TerminalPanel" type="Window"]
+title = "NPC"
+initial_position = 1
+size = Vector2i(640, 360)
+visible = false
+unresizable = true
+transparent_bg = true
+theme_override_styles/panel = SubResource("empty_panel")
 script = ExtResource("1_script")
 
 [node name="PTY" type="PTY" parent="."]
 
-[node name="Frame" type="Panel" parent="."]
+[node name="Terminal" type="Terminal" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-clip_contents = true
-
-[node name="TitleBar" type="HBoxContainer" parent="Frame"]
-anchors_preset = 10
-anchor_right = 1.0
-offset_bottom = 14.0
-
-[node name="Title" type="Label" parent="Frame/TitleBar"]
-size_flags_horizontal = 3
-text = "NPC"
-theme_override_font_sizes/font_size = 8
-
-[node name="CloseButton" type="Button" parent="Frame/TitleBar"]
-custom_minimum_size = Vector2(14, 14)
-text = "X"
-theme_override_font_sizes/font_size = 8
-
-[node name="Terminal" type="Terminal" parent="Frame"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 16.0
-offset_left = 2.0
-offset_right = -2.0
-offset_bottom = -2.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
 focus_mode = 2
-clip_contents = true
-theme_override_font_sizes/normal_font_size = 18
-theme_override_font_sizes/bold_font_size = 18
-theme_override_font_sizes/italics_font_size = 18
-theme_override_font_sizes/bold_italics_font_size = 18
+theme_override_colors/background_color = Color(0, 0, 0, 0.5)
+theme_override_font_sizes/font_size = 18
+
+
+[node name="CloseButton" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -32.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = 28.0
+text = "X"
+tooltip_text = "Close (or click outside the window)"
+theme_override_font_sizes/font_size = 16
 
 [node name="StatusTimer" type="Timer" parent="."]
 wait_time = 0.1

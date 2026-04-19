@@ -6,14 +6,6 @@ extends Control
 @onready var _ui: UIRootNode = $UIRoot
 
 func _ready() -> void:
-	var container: SubViewportContainer = $GameViewportContainer
-	var viewport: SubViewport = $GameViewportContainer/GameViewport
-	print("[main] window=", DisplayServer.window_get_size(),
-		" main=", size,
-		" container=", container.size,
-		" viewport=", viewport.size,
-		" stretch=", container.stretch,
-		" stretch_shrink=", container.stretch_shrink)
 	_world.panel_requested.connect(_on_panel_requested)
 	_world.target_changed.connect(_on_target_changed)
 	_world.spawn_succeeded.connect(_on_spawn_succeeded)
@@ -32,7 +24,7 @@ func _on_spawn_succeeded(npc: NpcEntity) -> void:
 func _on_spawn_failed(reason: String) -> void:
 	_ui.show_toast(reason.capitalize())
 
-func _on_panel_requested(panel: InteractionPanel, npc: NpcEntity) -> void:
+func _on_panel_requested(panel: Node, npc: NpcEntity) -> void:
 	_ui.show_panel_for(panel, npc)
 
 func _on_target_changed(npc: NpcEntity) -> void:
