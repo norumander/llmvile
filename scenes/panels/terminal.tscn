@@ -3,15 +3,9 @@
 [ext_resource type="Script" path="res://scripts/terminal_panel.gd" id="1_script"]
 
 [node name="TerminalPanel" type="Control"]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -256.0
-offset_top = -144.0
-offset_right = 256.0
-offset_bottom = 144.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 mouse_filter = 0
 script = ExtResource("1_script")
 
@@ -21,29 +15,37 @@ script = ExtResource("1_script")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+clip_contents = true
 
 [node name="TitleBar" type="HBoxContainer" parent="Frame"]
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 18.0
+offset_bottom = 14.0
 
 [node name="Title" type="Label" parent="Frame/TitleBar"]
 size_flags_horizontal = 3
 text = "NPC"
+theme_override_font_sizes/font_size = 8
 
 [node name="CloseButton" type="Button" parent="Frame/TitleBar"]
-custom_minimum_size = Vector2(18, 18)
+custom_minimum_size = Vector2(14, 14)
 text = "X"
+theme_override_font_sizes/font_size = 8
 
 [node name="Terminal" type="Terminal" parent="Frame"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 20.0
-offset_left = 4.0
-offset_right = -4.0
-offset_bottom = -4.0
+offset_top = 16.0
+offset_left = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
 focus_mode = 2
+clip_contents = true
+theme_override_font_sizes/normal_font_size = 18
+theme_override_font_sizes/bold_font_size = 18
+theme_override_font_sizes/italics_font_size = 18
+theme_override_font_sizes/bold_italics_font_size = 18
 
 [node name="StatusTimer" type="Timer" parent="."]
 wait_time = 0.1

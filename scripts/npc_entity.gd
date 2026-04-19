@@ -8,6 +8,9 @@ signal status_changed(new_status: NpcStatus.Status)
 const DEFAULT_PANEL_SCENE := preload("res://scenes/panels/terminal.tscn")
 
 @export var config: NpcConfig
+## Where the panel lives in the tree. Typically UIRoot.PanelHost.
+## If unset (tests), the panel becomes a child of this NpcEntity.
+var panel_host: Node
 ## For tests only — substitute a panel scene with a mock PTY.
 var panel_scene_override: PackedScene
 
@@ -36,13 +39,18 @@ func _ready() -> void:
 	var scene: PackedScene = panel_scene_override if panel_scene_override != null else DEFAULT_PANEL_SCENE
 	_panel = scene.instantiate()
 	_panel.visible = false
-	add_child(_panel)
+	var parent_for_panel: Node = panel_host if panel_host != null else self
+	parent_for_panel.add_child(_panel)
 
 	if _panel.has_signal("status_changed"):
 		_panel.status_changed.connect(func(s): status = s)
 	if _panel.has_signal("session_ended"):
 		_panel.session_ended.connect(_on_session_ended)
 	_panel.panel_closed.connect(_on_panel_closed)
+
+	tree_exiting.connect(func():
+		if is_instance_valid(_panel):
+			_panel.queue_free())
 
 func interact() -> InteractionPanel:
 	interaction_started.emit(_panel)

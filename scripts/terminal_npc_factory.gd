@@ -15,6 +15,10 @@ const DESK_POSITIONS: Array[Vector2] = [
 ## Populated by the world scene; cycled for each spawn.
 @export var sprite_frames_pool: Array[SpriteFrames] = []
 
+## Where each spawned NPC's panel should live in the tree (typically UIRoot.PanelHost).
+## Configured by world.gd. Left null in unit tests.
+var panel_host: Node
+
 ## For tests only — overrides the default terminal.tscn.
 var panel_scene_override: PackedScene
 
@@ -41,6 +45,8 @@ func spawn_at_free_desk() -> NpcEntity:
 	npc.position = DESK_POSITIONS[idx]
 	if panel_scene_override != null:
 		npc.panel_scene_override = panel_scene_override
+	if panel_host != null:
+		npc.panel_host = panel_host
 	var captured_idx := idx
 	npc.tree_exiting.connect(func(): _occupied[captured_idx] = false)
 	get_parent().add_child(npc)

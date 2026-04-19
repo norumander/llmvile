@@ -7,6 +7,7 @@ signal status_changed(new_status: NpcStatus.Status)
 const QUIET_THRESHOLD_SEC := 1.5
 
 var _panel_opened: bool = false
+var _has_been_opened_once: bool = false
 var _has_unread: bool = false
 var _last_activity_time: float = 0.0
 var _current_status: NpcStatus.Status = NpcStatus.Status.IDLE
@@ -30,6 +31,7 @@ func _ready() -> void:
 
 func show_for(npc) -> void:
 	_panel_opened = true
+	_has_been_opened_once = true
 	_has_unread = false
 	visible = true
 	_terminal.grab_focus()
@@ -60,7 +62,11 @@ func _on_terminal_resized() -> void:
 
 func _recompute_status() -> void:
 	var next: NpcStatus.Status
-	if _panel_opened:
+	if not _has_been_opened_once:
+		# Suppress status before the first interaction — the initial shell
+		# prompt shouldn't light up the NPC before the user has touched it.
+		next = NpcStatus.Status.IDLE
+	elif _panel_opened:
 		next = NpcStatus.Status.IDLE
 	elif not _has_unread:
 		next = NpcStatus.Status.IDLE
@@ -68,6 +74,12 @@ func _recompute_status() -> void:
 		var quiet: bool = (Time.get_ticks_msec() / 1000.0) - _last_activity_time >= QUIET_THRESHOLD_SEC
 		next = NpcStatus.Status.NOTIFY if quiet else NpcStatus.Status.BUSY
 	_set_status(next)
+
+func _apply_terminal_font_size(pt: int) -> void:
+	_terminal.add_theme_font_size_override("normal_font_size", pt)
+	_terminal.add_theme_font_size_override("bold_font_size", pt)
+	_terminal.add_theme_font_size_override("italics_font_size", pt)
+	_terminal.add_theme_font_size_override("bold_italics_font_size", pt)
 
 func _set_status(new_status: NpcStatus.Status) -> void:
 	if new_status == _current_status:

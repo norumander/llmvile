@@ -14,11 +14,13 @@ func _physics_process(_delta: float) -> void:
 		input_dir = Vector2(sign(input_dir.x), 0)
 	else:
 		input_dir = Vector2(0, sign(input_dir.y))
+	if GameRoot.world_input_paused:
+		input_dir = Vector2.ZERO
 	_compute_velocity(input_dir)
 	move_and_slide()
 	_update_animation(input_dir)
 	$InteractionSystem.recompute_target(global_position)
-	if Input.is_action_just_pressed("interact"):
+	if not GameRoot.world_input_paused and Input.is_action_just_pressed("interact"):
 		var panel: InteractionPanel = $InteractionSystem.try_interact()
 		if panel != null:
 			panel_requested.emit(panel, $InteractionSystem.current_target)

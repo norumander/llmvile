@@ -23,6 +23,9 @@ func test_show_for_sets_opened():
 func test_output_while_closed_sets_unread_and_busy():
 	var panel := _make_panel()
 	await wait_frames(1)
+	# Status tracking only starts after the first open.
+	panel.show_for(null)
+	panel.close()
 	panel.get_node("PTY").emit_output("hello")
 	await wait_frames(1)
 	assert_true(panel._has_unread)
@@ -31,6 +34,8 @@ func test_output_while_closed_sets_unread_and_busy():
 func test_output_then_quiet_transitions_to_notify():
 	var panel := _make_panel()
 	await wait_frames(1)
+	panel.show_for(null)
+	panel.close()
 	panel.get_node("PTY").emit_output("hello")
 	panel._last_activity_time -= 2.0
 	panel._recompute_status()

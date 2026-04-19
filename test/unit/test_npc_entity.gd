@@ -49,6 +49,9 @@ func test_status_bubbles_up_from_panel():
 	var observed: Array = []
 	npc.status_changed.connect(func(s): observed.append(s))
 	var panel: Node = npc.interact()
+	# Open + close once to enable status tracking, then emit output.
+	panel.show_for(npc)
+	panel.close()
 	panel.get_node("PTY").emit_output("hi")
 	panel._recompute_status()
 	assert_true(observed.size() > 0)
